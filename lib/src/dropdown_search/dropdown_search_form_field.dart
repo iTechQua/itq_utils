@@ -142,7 +142,7 @@ class DropdownSearch<T> extends StatefulWidget {
   final BeforePopupOpeningMultiSelection<T>? onBeforePopupOpeningMultiSelection;
 
   DropdownSearch({
-    Key? key,
+    super.key,
     this.onSaved,
     this.validator,
     this.autoValidateMode = AutovalidateMode.disabled,
@@ -172,11 +172,10 @@ class DropdownSearch<T> extends StatefulWidget {
         selectedItems = const [],
         onSavedMultiSelection = null,
         onChangedMultiSelection = null,
-        onBeforePopupOpeningMultiSelection = null,
-        super(key: key);
+        onBeforePopupOpeningMultiSelection = null;
 
   DropdownSearch.multiSelection({
-    Key? key,
+    super.key,
     this.autoValidateMode = AutovalidateMode.disabled,
     this.items = const [],
     this.asyncItems,
@@ -211,8 +210,7 @@ class DropdownSearch<T> extends StatefulWidget {
         selectedItem = null,
         onSaved = null,
         onChanged = null,
-        onBeforePopupOpening = null,
-        super(key: key);
+        onBeforePopupOpening = null;
 
   @override
   DropdownSearchState<T> createState() => DropdownSearchState<T>();

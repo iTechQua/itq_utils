@@ -147,6 +147,7 @@ export 'src/utils/alert/dialog_button.dart';
 export 'src/utils/alert/alert_style.dart';
 export 'src/utils/alert/itq_alert.dart';
 
+export 'src/dropdown_search/dropdown_search_form_field.dart';
 export 'src/dropdown_search/properties/bottom_sheet_props.dart';
 export 'src/dropdown_search/properties/clear_button_props.dart';
 export 'src/dropdown_search/properties/dialog_props.dart';
