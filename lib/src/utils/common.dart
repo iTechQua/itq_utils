@@ -6,6 +6,11 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:itq_utils/itq_utils.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+
+String dirPath = "/storage/emulated/0/Documents";
 
 /// Make any variable nullable
 T? makeNullable<T>(T? value) => value;
@@ -607,4 +612,158 @@ itqOnBackPressed(BuildContext context) {
       );
     },
   );
+}
+
+Future<T?> openDialog<T>({
+  required BuildContext context,
+  bool barrierDismissible = true,
+  Widget? child,
+  WidgetBuilder? builder,
+}) {
+  assert(child == null || builder == null);
+  assert(debugCheckHasMaterialLocalizations(context));
+
+  final ThemeData theme = Theme.of(
+    context,
+  );
+  return showGeneralDialog(
+    context: context,
+    pageBuilder: (BuildContext buildContext, Animation<double> animation,
+        Animation<double> secondaryAnimation) {
+      final Widget pageChild = child ?? Builder(builder: builder!);
+      return Builder(builder: (BuildContext context) {
+        return Theme(data: theme, child: pageChild);
+      });
+    },
+    barrierDismissible: barrierDismissible,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 400),
+    transitionBuilder: _buildTransition,
+  );
+}
+
+Widget _buildTransition(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+    ) {
+  return ScaleTransition(
+    scale: CurvedAnimation(
+      parent: animation,
+      curve: Curves.bounceIn,
+      reverseCurve: Curves.bounceIn,
+    ),
+    child: child,
+  );
+}
+
+// String Extensions
+extension StringCasingExtension on String {
+  /// Word Capitalized
+  String toCapitalized() =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+
+  /// Title Capitalized
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
+      .split(' ')
+      .map((str) => str.toCapitalized())
+      .join(' ');
+}
+
+// Indexed Map Extensions
+extension IndexedIterable<E> on Iterable<E> {
+  /// Indexed Map
+  Iterable<T> indexedMap<T>(T Function(E element, int index) f) {
+    var index = 0;
+    return map((e) => f(e, index++));
+  }
+}
+
+// File Extensions
+extension FileSaveUtils on void {
+  /// Save PDF Documents
+  savePdfDocuments(
+      {required String name,
+        required Uint8List fileBytes,
+        String customDirectoryName = "Documents",
+        BuildContext? context}) async {
+    Directory appDocDirectory = await getApplicationDocumentsDirectory();
+    String path = Platform.isAndroid
+        ? dirPath
+        : "${appDocDirectory.path}/$customDirectoryName";
+    try {
+      bool checkPermission = await Permission.accessMediaLocation.isGranted;
+      if (checkPermission) {
+        File pdfDoc = File(
+            "$path/${DateFormat('yy-HH-mm-ss').format(DateTime.now())}-$name");
+        await pdfDoc.writeAsBytes(fileBytes);
+        ScaffoldMessenger.of(context!).showSnackBar(SnackBar(
+          content: Text(
+              "File saved successfully to $path/${DateFormat('yy-HH-mm-ss').format(DateTime.now())}-$name"
+                  "File saved successfully to $path/${DateFormat('yy-HH-mm-ss').format(DateTime.now())}-$name"),
+        ));
+      } else {
+        ScaffoldMessenger.of(context!).showSnackBar(const SnackBar(
+          content: Text("Storage permission denied !, please try again!"),
+        ));
+        var status = await Permission.accessMediaLocation.status;
+        if (!status.isGranted) {
+          await Permission.accessMediaLocation.request();
+        }
+      }
+    } on FileSystemException catch (e) {
+      ScaffoldMessenger.of(context!).showSnackBar(SnackBar(
+        content: Text("ERROR: ${e.message} $path/$name"),
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context!).showSnackBar(SnackBar(
+        content: Text("ERROR: $e"),
+      ));
+    }
+  }
+
+  /// Save Network Image
+  SaveNetworkImage(
+      {required String name,
+        required String url,
+        String customDirectoryName = "Documents",
+        BuildContext? context}) async {
+    Directory appDocDirectory = await getApplicationDocumentsDirectory();
+    String path = Platform.isAndroid
+        ? dirPath
+        : "${appDocDirectory.path}/$customDirectoryName";
+
+    try {
+      var response = await http.get(Uri.parse(url));
+      final bytes = response.bodyBytes;
+      bool checkPermission = await Permission.mediaLibrary.isGranted;
+      if (checkPermission) {
+        File file = File(
+            "$path/${DateFormat('yy-HH-mm-ss').format(DateTime.now())}-$name");
+        await file.writeAsBytes(bytes);
+        ScaffoldMessenger.of(context!).showSnackBar(SnackBar(
+          content: Text(
+              "File saved successfully to $path/${DateFormat('yy-HH-mm-ss').format(DateTime.now())}-$name"),
+        ));
+      } else {
+        ScaffoldMessenger.of(context!).showSnackBar(const SnackBar(
+          content: Text("Storage permission denied !, please try again!"),
+        ));
+        var status = await Permission.mediaLibrary.status;
+        if (!status.isGranted) {
+          await Permission.mediaLibrary.request();
+        }
+      }
+    } on FileSystemException catch (e) {
+      ScaffoldMessenger.of(context!).showSnackBar(SnackBar(
+        content: Text("ERROR: ${e.message} $path/$name"),
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context!).showSnackBar(SnackBar(
+        content: Text("ERROR: $e"),
+      ));
+    }
+  }
 }

@@ -143,6 +143,23 @@ export 'src/upgrade/itq_upgrade_new_version_messages.dart';
 export 'src/upgrade/itq_upgrade_new_version_os.dart';
 export 'src/upgrade/itq_upgrade_new_version.dart';
 
+export 'src/utils/alert/dialog_button.dart';
+export 'src/utils/alert/alert_style.dart';
+export 'src/utils/alert/itq_alert.dart';
+
+export 'src/dropdown_search/properties/bottom_sheet_props.dart';
+export 'src/dropdown_search/properties/clear_button_props.dart';
+export 'src/dropdown_search/properties/dialog_props.dart';
+export 'src/dropdown_search/properties/dropdown_button_props.dart';
+export 'src/dropdown_search/properties/dropdown_decorator_props.dart';
+export 'src/dropdown_search/properties/favorite_item_props.dart';
+export 'src/dropdown_search/properties/icon_button_props.dart';
+export 'src/dropdown_search/properties/list_view_props.dart';
+export 'src/dropdown_search/properties/menu_props.dart';
+export 'src/dropdown_search/properties/modal_bottom_sheet_props.dart';
+export 'src/dropdown_search/properties/popup_props.dart';
+export 'src/dropdown_search/properties/text_field_props.dart';
+
 
 //region Global variables - This variables can be changed.
 Color textPrimaryColorGlobal = textPrimaryColor;

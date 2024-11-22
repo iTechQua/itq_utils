@@ -1,3 +1,10 @@
+## 1.0.7
+- Added dropdown search
+## 1.0.6
+- Added alert button
+## 1.0.5
+- Update dimensions utils
+- Added openDialog function
 ## 1.0.4
 - Added dimensions utils
 ## 1.0.3

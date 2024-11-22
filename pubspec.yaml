@@ -1,6 +1,6 @@
 name: itq_utils
 description: Collection of Widgets and helpful Methods that every developer needs.
-version: 1.0.4
+version: 1.0.7
 #homepage: https://iTechQua.github.io
 repository: https://github.com/iTechQua/itq_utils
 issue_tracker: https://github.com/iTechQua/itq_utils/issues
@@ -36,6 +36,8 @@ dependencies:
   url_launcher: ^6.1.12
   device_info_plus: ^9.0.2
   os_detect: ^2.0.2
+  path_provider: ^2.0.15
+  permission_handler: ^11.3.0
 
 dev_dependencies:
   lints: ^4.0.0

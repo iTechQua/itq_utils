@@ -50,7 +50,7 @@ class ItqAppBar extends StatefulWidget {
 class _ItqAppBarState extends State<ItqAppBar> {
   @override
   Widget build(BuildContext context) {
-    Size hcSize = MediaQuery.of(context).size;
+    Size size = MediaQuery.of(context).size;
     return Stack(
       children: [
         Container(
@@ -61,7 +61,7 @@ class _ItqAppBarState extends State<ItqAppBar> {
           padding: EdgeInsets.only(
               top: Platform.isAndroid
                   ? widget.topPadding + 40
-                  : widget.topPadding + hcSize.height * 0.06),
+                  : widget.topPadding + size.height * 0.06),
           child: Container(
             padding: const EdgeInsets.only(top: 5),
             decoration: BoxDecoration(
