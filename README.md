@@ -22,7 +22,7 @@
 <a href="https://saythanks.io/to/iTechQua" target="_blank"><img src="https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg"/></a>
 
 ### Follow Me on Twitter 
-<a href="https://x.com/HEMANTC81055883" target="_blank"><img src="https://img.shields.io/twitter/follow/HEMANTC81055883?color=1DA1F2&label=Followers&logo=twitter" /></a>
+<a href="https://x.com/iTechQua" target="_blank"><img src="https://img.shields.io/twitter/follow/iTechQua?color=1DA1F2&label=Followers&logo=twitter" /></a>
 
 ## Platform Support
 
