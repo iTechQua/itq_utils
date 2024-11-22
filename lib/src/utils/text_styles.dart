@@ -121,3 +121,93 @@ RichText createRichText({
     strutStyle: strutStyle,
   );
 }
+
+
+final TextStyle semiBoldStyle = _textStyle.copyWith(
+  fontSize: Dimens.fontSize16,
+  fontWeight: FontWeight.w600,
+);
+
+final TextStyle mediumStyle = _textStyle.copyWith(
+  fontSize: Dimens.fontSize16,
+  fontWeight: FontWeight.w500,
+);
+
+final TextStyle boldStyle = _textStyle.copyWith(
+  fontSize: Dimens.fontSize22,
+  fontWeight: FontWeight.w700,
+);
+
+final TextStyle regularStyle = _textStyle.copyWith(
+  fontSize: Dimens.fontSize18,
+  fontWeight: FontWeight.w400,
+);
+
+final TextStyle buttonTextStyle = _textStyle.copyWith(
+  fontSize: Dimens.fontSize16,
+  fontWeight: FontWeight.w600,
+);
+
+const TextStyle _textStyle = TextStyle(
+  fontFamily: 'SFProDisplay',
+  color: Colors.grey,
+  fontSize: Dimens.fontSize14,
+);
+
+class Dimens {
+  const Dimens._();
+
+  static const double fontSize9 = 9;
+  static const double fontSize10 = 10;
+  static const double fontSize12 = 12;
+  static const double fontSize13 = 13;
+  static const double fontSize14 = 14;
+  static const double fontSize15 = 15;
+  static const double fontSize16 = 16;
+  static const double fontSize18 = 18;
+  static const double fontSize17 = 17;
+  static const double fontSize20 = 20;
+  static const double fontSize22 = 22;
+  static const double fontSize24 = 24;
+  static const double fontSize26 = 26;
+  static const double fontSize28 = 28;
+  static const double fontSize30 = 30;
+  static const double fontSize32 = 32;
+
+  // ui
+  static const double buttonHeight = 44;
+}
+
+class Dimensions {
+  double calcH(double height) {
+    double factor = MediaQuery.of(getContext).size.height / height;
+    return (MediaQuery.of(getContext).size.height / factor).roundToDouble();
+  }
+
+  double calcW(double width) {
+    double factor = MediaQuery.of(getContext).size.width / width;
+    return (MediaQuery.of(getContext).size.width / factor).roundToDouble();
+  }
+
+  double fontSizeExtraSmall = MediaQuery.of(getContext).size.width >= 1300 ? 14 : 10;
+  double fontSizeSmall = MediaQuery.of(getContext).size.width >= 1300 ? 16 : 12;
+  double fontSizeDefault = MediaQuery.of(getContext).size.width >= 1300 ? 18 : 14;
+  double fontSizeLarge = MediaQuery.of(getContext).size.width >= 1300 ? 20 : 16;
+  double fontSizeExtraLarge = MediaQuery.of(getContext).size.width >= 1300 ? 22 : 18;
+  double fontSizeOverLarge = MediaQuery.of(getContext).size.width >= 1300 ? 28 : 24;
+
+  static const double paddingSizeExtraSmall = 5.0;
+  static const double paddingSizeSmall = 10.0;
+  static const double paddingSizeDefault = 15.0;
+  static const double paddingSizeLarge = 20.0;
+  static const double paddingSizeExtraLarge = 25.0;
+  static const double paddingSizeExtremeLarge = 30.0;
+
+  static const double radiusSmall = 5.0;
+  static const double radiusDefault = 10.0;
+  static const double radiusLarge = 15.0;
+  static const double radiusExtraLarge = 20.0;
+
+  static const double webMaxWidth = 1170;
+  static const int messageInputLength = 250;
+}

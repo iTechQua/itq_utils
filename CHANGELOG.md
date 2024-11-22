@@ -1,3 +1,5 @@
+## 1.0.4
+- Added dimensions utils
 ## 1.0.3
 - Added obscureText param in App Text Field to show hide password
 - Added hoverElevation, focusElevation, highlightElevation in App Button
