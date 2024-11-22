@@ -1,16 +1,16 @@
+## 1.0.3
+- Added obscureText param in App Text Field to show hide password
+- Added hoverElevation, focusElevation, highlightElevation in App Button
 ## 1.0.2
-- Update package versions
-- ## 1.0.1
+- Added insetPadding in showInDialog method
+- Autofill hint support for OTP text field
+## 1.0.1
 - Added emergent ui
 - Added upgrader
 - Added custom app bar
 - Added custom dialog
 - Added app stack loader
 ## 1.0.0
-- Added insetPadding in showInDialog method
-- Autofill hint support for OTP text field
-- Added obscureText param in App Text Field to show hide password
-- Added hoverElevation, focusElevation, highlightElevation in App Button
 - Added refreshIndicatorColor in AnimatedScrollView, AnimatedListView
 - Added support for defaultToastBackgroundColor, defaultToastTextColor for toast customization
 - Fix Java 17 Compatibility to Android Project
