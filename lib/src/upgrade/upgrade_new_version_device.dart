@@ -1,10 +1,10 @@
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version_os.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
 import 'package:version/version.dart';
 
 
-class ItqUpgradeDevice {
-  Future<String?> getOsVersionString(ItqUpgradeOS upgradeOS) async {
+class UpgradeDevice {
+  Future<String?> getOsVersionString(UpgradeOS upgradeOS) async {
     final deviceInfo = DeviceInfoPlugin();
     String? osVersionString;
     if (upgradeOS.isAndroid) {
@@ -48,12 +48,12 @@ class ItqUpgradeDevice {
   }
 }
 
-class ItqMockUpgradeDevice extends ItqUpgradeDevice {
-  ItqMockUpgradeDevice({this.osVersionString = ''});
+class MockUpgradeDevice extends UpgradeDevice {
+  MockUpgradeDevice({this.osVersionString = ''});
 
   final String osVersionString;
 
   @override
-  Future<String?> getOsVersionString(ItqUpgradeOS upgradeOS) async =>
+  Future<String?> getOsVersionString(UpgradeOS upgradeOS) async =>
       osVersionString;
 }

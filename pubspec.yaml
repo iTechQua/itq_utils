@@ -1,6 +1,6 @@
 name: itq_utils
 description: Collection of Widgets and helpful Methods that every developer needs.
-version: 1.0.7
+version: 1.0.8
 #homepage: https://iTechQua.github.io
 repository: https://github.com/iTechQua/itq_utils
 issue_tracker: https://github.com/iTechQua/itq_utils/issues
@@ -27,6 +27,7 @@ dependencies:
   fluttertoast: ^8.2.8
   connectivity_plus: ^6.1.0
   http: ^1.2.2
+  cached_network_image: ^3.2.3
 
   version: ^3.0.2
   xml: ^6.5.0
@@ -67,6 +68,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/lottie/
+    - assets/app/
 
 topics:
   - widgets

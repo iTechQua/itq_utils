@@ -2,7 +2,7 @@ import "package:os_detect/os_detect.dart" as platform;
 import 'package:flutter/foundation.dart';
 
 /// A class that indicates which OS this code is running on.
-class ItqUpgradeOS {
+class UpgradeOS {
   String? _current;
 
   String get current {
@@ -107,9 +107,9 @@ class ItqUpgradeOS {
   }
 }
 
-/// A class to mock [ItqUpgradeOS] for testing.
-class ItqMockUpgradeOS extends ItqUpgradeOS {
-  ItqMockUpgradeOS({
+/// A class to mock [UpgradeOS] for testing.
+class MockUpgradeOS extends UpgradeOS {
+  MockUpgradeOS({
     this.os = '',
     this.osv = '',
     this.android = false,

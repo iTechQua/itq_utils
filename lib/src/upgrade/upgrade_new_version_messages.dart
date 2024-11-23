@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 T? ambiguate<T>(T? value) => value;
 
 /// The message identifiers used in upgrade.
-enum ItqUpgradeMessage {
+enum upgradeAlertMessage {
   /// Body of the upgrade message
   body,
 
@@ -45,33 +45,33 @@ enum ItqUpgradeMessage {
 /// UpgradeAlert(messages: MyUpgraderMessages());
 /// ```
 ///
-class ItqUpgradeMessages {
+class UpgradeAlertMessages {
   /// The primary language subtag for the locale, which defaults to the
   /// system-reported default locale of the device.
   final String languageCode;
 
   /// Provide a [code] to override the system-reported default locale.
-  ItqUpgradeMessages({String? code})
+  UpgradeAlertMessages({String? code})
       : languageCode = (code ?? findLanguageCode()) {
     assert(languageCode.isNotEmpty);
   }
 
   /// Override the message function to provide custom language localization.
-  String? message(ItqUpgradeMessage messageKey) {
+  String? message(upgradeAlertMessage messageKey) {
     switch (messageKey) {
-      case ItqUpgradeMessage.body:
+      case upgradeAlertMessage.body:
         return body;
-      case ItqUpgradeMessage.buttonTitleIgnore:
+      case upgradeAlertMessage.buttonTitleIgnore:
         return buttonTitleIgnore;
-      case ItqUpgradeMessage.buttonTitleLater:
+      case upgradeAlertMessage.buttonTitleLater:
         return buttonTitleLater;
-      case ItqUpgradeMessage.buttonTitleUpdate:
+      case upgradeAlertMessage.buttonTitleUpdate:
         return buttonTitleUpdate;
-      case ItqUpgradeMessage.prompt:
+      case upgradeAlertMessage.prompt:
         return prompt;
-      case ItqUpgradeMessage.releaseNotes:
+      case upgradeAlertMessage.releaseNotes:
         return releaseNotes;
-      case ItqUpgradeMessage.title:
+      case upgradeAlertMessage.title:
         return title;
       default:
     }

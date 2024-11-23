@@ -2,22 +2,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:itq_utils/itq_utils.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version_messages.dart';
 
 /// There are two different dialog styles: Cupertino and Material
-enum ItqUpgradeDialogStyle { cupertino, material }
+enum UpgradeDialogStyle { cupertino, material }
 
 /// A widget to display the upgrade dialog.
 /// Override the [createState] method to provide a custom class
 /// with overridden methods.
-class ItqUpgradeAlert extends StatefulWidget {
-  /// Creates a new [ItqUpgradeAlert].
-  ItqUpgradeAlert({
+class UpgradeAlertDialog extends StatefulWidget {
+  /// Creates a new [UpgradeAlertDialog].
+  UpgradeAlertDialog({
     super.key,
-    ItqUpgradeNewVersion? itqUpgrade,
+    UpgradeNewVersion? upgradeAlert,
     this.canDismissDialog = false,
-    this.dialogStyle = ItqUpgradeDialogStyle.material,
+    this.dialogStyle = UpgradeDialogStyle.material,
     this.onIgnore,
     this.onLater,
     this.onUpdate,
@@ -35,10 +33,10 @@ class ItqUpgradeAlert extends StatefulWidget {
     this.dialogKey,
     this.navigatorKey,
     this.child,
-  }) : upgrade = itqUpgrade ?? ItqUpgradeNewVersion.sharedInstance;
+  }) : upgrade = upgradeAlert ?? UpgradeNewVersion.sharedInstance;
 
   /// The upgrade used to configure the upgrade dialog.
-  final ItqUpgradeNewVersion upgrade;
+  final UpgradeNewVersion upgrade;
 
   /// Can alert dialog be dismissed on tap outside of the alert dialog. Not used by [UpgradeCard]. (default: false)
   final bool canDismissDialog;
@@ -51,7 +49,7 @@ class ItqUpgradeAlert extends StatefulWidget {
   final double buttonFontSize;
 
   /// The upgrade dialog style. Used only on UpgradeAlert. (default: material)
-  final ItqUpgradeDialogStyle dialogStyle;
+  final UpgradeDialogStyle dialogStyle;
 
   /// Called when the ignore button is tapped or otherwise activated.
   /// Return false when the default behavior should not execute.
@@ -79,7 +77,7 @@ class ItqUpgradeAlert extends StatefulWidget {
   final bool showReleaseNotes;
 
   /// The text style for the cupertino dialog buttons. Used only for
-  /// [ItqUpgradeDialogStyle.cupertino]. Optional.
+  /// [UpgradeDialogStyle.cupertino]. Optional.
   final TextStyle? cupertinoButtonTextStyle;
 
   /// The [Key] assigned to the dialog when it is shown.
@@ -92,11 +90,11 @@ class ItqUpgradeAlert extends StatefulWidget {
   final Widget? child;
 
   @override
-  ItqUpgradeAlertState createState() => ItqUpgradeAlertState();
+  UpgradeAlertDialogState createState() => UpgradeAlertDialogState();
 }
 
-/// The [ItqUpgradeAlert] widget state.
-class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
+/// The [UpgradeAlertDialog] widget state.
+class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
   /// Is the alert dialog being displayed right now?
   bool displayed = false;
 
@@ -111,7 +109,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
   Widget build(BuildContext context) {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: build UpgradeAlert');
+        print('upgradeAlert: build UpgradeAlert');
       }
     }
 
@@ -119,14 +117,14 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
       initialData: widget.upgrade.evaluationReady,
       stream: widget.upgrade.evaluationStream,
       builder:
-          (BuildContext context, AsyncSnapshot<ItqUpgradeEvaluateNeed> snapshot) {
+          (BuildContext context, AsyncSnapshot<UpgradeEvaluateNeed> snapshot) {
         if ((snapshot.connectionState == ConnectionState.waiting ||
             snapshot.connectionState == ConnectionState.active) &&
             snapshot.data != null &&
             snapshot.data!) {
           if (widget.upgrade.debugLogging) {
             if (kDebugMode) {
-              print("itqUpgrade: need to evaluate version");
+              print("upgradeAlert: need to evaluate version");
             }
           }
 
@@ -144,12 +142,12 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
   }
 
   /// Will show the alert dialog when it should be dispalyed.
-  /// Only called by [ItqUpgradeAlert] and not used by [UpgradeCard].
+  /// Only called by [UpgradeAlertDialog] and not used by [UpgradeCard].
   void checkVersion({required BuildContext context}) {
     final shouldDisplay = widget.upgrade.shouldDisplayUpgrade();
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: shouldDisplayReleaseNotes: shouldDisplayReleaseNotes');
+        print('upgradeAlert: shouldDisplayReleaseNotes: shouldDisplayReleaseNotes');
       }
     }
     if (shouldDisplay) {
@@ -160,7 +158,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
         showTheDialog(
           key: widget.dialogKey ?? const Key('upgrade_alert_dialog'),
           context: context,
-          title: appMessages.message(ItqUpgradeMessage.title),
+          title: appMessages.message(upgradeAlertMessage.title),
           message: widget.upgrade.body(appMessages),
           releaseNotes:
           shouldDisplayReleaseNotes ? widget.upgrade.releaseNotes : null,
@@ -174,7 +172,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
   void onUserIgnored(BuildContext context, bool shouldPop) {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: button tapped: ignore');
+        print('upgradeAlert: button tapped: ignore');
       }
     }
 
@@ -193,7 +191,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
   void onUserLater(BuildContext context, bool shouldPop) {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: button tapped: later');
+        print('upgradeAlert: button tapped: later');
       }
     }
 
@@ -208,7 +206,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
   void onUserUpdated(BuildContext context, bool shouldPop) {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: button tapped: update now');
+        print('upgradeAlert: button tapped: update now');
       }
     }
 
@@ -241,13 +239,13 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
     required String message,
     required String? releaseNotes,
     required bool canDismissDialog,
-    required ItqUpgradeMessages messages,
+    required UpgradeAlertMessages messages,
   }) {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: showTheDialog title: $title');
-        print('itqUpgrade: showTheDialog message: $message');
-        print('itqUpgrade: showTheDialog releaseNotes: $releaseNotes');
+        print('upgradeAlert: showTheDialog title: $title');
+        print('upgradeAlert: showTheDialog message: $message');
+        print('upgradeAlert: showTheDialog releaseNotes: $releaseNotes');
       }
     }
 
@@ -266,7 +264,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
               message,
               releaseNotes,
               context,
-              widget.dialogStyle == ItqUpgradeDialogStyle.cupertino,
+              widget.dialogStyle == UpgradeDialogStyle.cupertino,
               messages,
             ));
       },
@@ -279,14 +277,14 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
   bool onWillPop() {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: onWillPop called');
+        print('upgradeAlert: onWillPop called');
       }
     }
     if (widget.shouldPopScope != null) {
       final should = widget.shouldPopScope!();
       if (widget.upgrade.debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: shouldPopScope=$should');
+          print('upgradeAlert: shouldPopScope=$should');
         }
       }
       return should;
@@ -302,7 +300,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
       String? releaseNotes,
       BuildContext context,
       bool cupertino,
-      ItqUpgradeMessages messages) {
+      UpgradeAlertMessages messages) {
     // If installed version is below minimum app version, or is a critical update,
     // disable ignore and later buttons.
     final isBlocked = widget.upgrade.blocked();
@@ -319,7 +317,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
                 ? CrossAxisAlignment.center
                 : CrossAxisAlignment.start,
             children: <Widget>[
-              Text(messages.message(ItqUpgradeMessage.releaseNotes) ?? '',
+              Text(messages.message(upgradeAlertMessage.releaseNotes) ?? '',
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(releaseNotes),
             ],
@@ -342,7 +340,7 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
                 Text(message),
                 Padding(
                     padding: const EdgeInsets.only(top: 15.0),
-                    child: Text(messages.message(ItqUpgradeMessage.prompt) ?? '')),
+                    child: Text(messages.message(upgradeAlertMessage.prompt) ?? '')),
                 if (notes != null) notes,
               ],
             )));
@@ -351,12 +349,12 @@ class ItqUpgradeAlertState extends State<ItqUpgradeAlert> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           if (showIgnore)
-            button(cupertino, messages.message(ItqUpgradeMessage.buttonTitleIgnore),
+            button(cupertino, messages.message(upgradeAlertMessage.buttonTitleIgnore),
                 context, () => onUserIgnored(context, true), widget.ignoreColor),
           if (showLater)
-            button(cupertino, messages.message(ItqUpgradeMessage.buttonTitleLater),
+            button(cupertino, messages.message(upgradeAlertMessage.buttonTitleLater),
                 context, () => onUserLater(context, true), widget.laterColor),
-          button(cupertino, messages.message(ItqUpgradeMessage.buttonTitleUpdate),
+          button(cupertino, messages.message(upgradeAlertMessage.buttonTitleUpdate),
               context, () => onUserUpdated(context, !widget.upgrade.blocked()), widget.primaryColor),
         ],
       )

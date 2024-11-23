@@ -575,7 +575,7 @@ Gradient itqGradient(
   );
 }
 
-itqOnBackPressed(BuildContext context) {
+showExitConfirmationDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
     builder: (BuildContext context) {
@@ -725,7 +725,7 @@ extension FileSaveUtils on void {
   }
 
   /// Save Network Image
-  SaveNetworkImage(
+  saveNetworkImage(
       {required String name,
         required String url,
         String customDirectoryName = "Documents",

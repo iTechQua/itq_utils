@@ -3,34 +3,34 @@
 import 'dart:convert' show utf8;
 
 import 'package:flutter/foundation.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version_device.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version_os.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_device.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
 import 'package:http/http.dart' as http;
 import 'package:version/version.dart';
 import 'package:xml/xml.dart';
 
 
-/// The [ItqAppCast] class is used to download an Appcast, based on the Sparkle
+/// The [AppCast] class is used to download an Appcast, based on the Sparkle
 /// Documentation: https://sparkle-project.org/documentation/publishing/
 /// An Appcast is an RSS feed with one channel that has a collection of items
 /// that each describe one app version.
-class ItqAppCast {
+class AppCast {
   /// Provide an HTTP Client that can be replaced during testing.
   final http.Client client;
 
-  /// Provide [ItqUpgradeOS] that can be replaced during testing.
-  final ItqUpgradeOS itqUpgradeOS;
+  /// Provide [UpgradeOS] that can be replaced during testing.
+  final UpgradeOS upgradeAlertOS;
 
-  /// Provide [ItqUpgradeDevice] that ca be replaced during testing.
-  final ItqUpgradeDevice itqUpgradeDevice;
+  /// Provide [UpgradeDevice] that ca be replaced during testing.
+  final UpgradeDevice upgradeAlertDevice;
 
-  ItqAppCast({
+  AppCast({
     http.Client? client,
-    ItqUpgradeOS? itqUpgradeOS,
-    ItqUpgradeDevice? itqUpgradeDevice,
+    UpgradeOS? upgradeAlertOS,
+    UpgradeDevice? upgradeAlertDevice,
   })  : client = client ?? http.Client(),
-        itqUpgradeOS = itqUpgradeOS ?? ItqUpgradeOS(),
-        itqUpgradeDevice = itqUpgradeDevice ?? ItqUpgradeDevice();
+        upgradeAlertOS = upgradeAlertOS ?? UpgradeOS(),
+        upgradeAlertDevice = upgradeAlertDevice ?? UpgradeDevice();
 
   /// The items in the Appcast.
   List<AppCastItem>? items;
@@ -47,7 +47,7 @@ class ItqAppCast {
     for (var item in items!) {
       if (item.hostSupportsItem(
               osVersion: osVersionString,
-              currentPlatform: itqUpgradeOS.current) &&
+              currentPlatform: upgradeAlertOS.current) &&
           item.isCriticalUpdate) {
         if (bestItem == null) {
           bestItem = item;
@@ -60,7 +60,7 @@ class ItqAppCast {
             }
           } on Exception catch (e) {
             if (kDebugMode) {
-              print('itqUpgrade: criticalUpdateItem invalid version: $e');
+              print('upgradeAlert: criticalUpdateItem invalid version: $e');
             }
           }
         }
@@ -79,7 +79,7 @@ class ItqAppCast {
     AppCastItem? bestItem;
     for (var item in items!) {
       if (item.hostSupportsItem(
-          osVersion: osVersionString, currentPlatform: itqUpgradeOS.current)) {
+          osVersion: osVersionString, currentPlatform: upgradeAlertOS.current)) {
         if (bestItem == null) {
           bestItem = item;
         } else {
@@ -91,7 +91,7 @@ class ItqAppCast {
             }
           } on Exception catch (e) {
             if (kDebugMode) {
-              print('itqUpgrade: bestItem invalid version: $e');
+              print('upgradeAlert: bestItem invalid version: $e');
             }
           }
         }
@@ -107,7 +107,7 @@ class ItqAppCast {
       response = await client.get(Uri.parse(appCastURL));
     } catch (e) {
       if (kDebugMode) {
-        print('itqUpgrade: parseAppcastItemsFromUri exception: $e');
+        print('upgradeAlert: parseAppcastItemsFromUri exception: $e');
       }
       return null;
     }
@@ -117,7 +117,7 @@ class ItqAppCast {
 
   /// Parse the Appcast from XML string.
   Future<List<AppCastItem>?> parseAppcastItems(String contents) async {
-    osVersionString = await itqUpgradeDevice.getOsVersionString(itqUpgradeOS);
+    osVersionString = await upgradeAlertDevice.getOsVersionString(upgradeAlertOS);
     return parseItemsFromXMLString(contents);
   }
 
@@ -222,7 +222,7 @@ class ItqAppCast {
       items = localItems;
     } catch (e) {
       if (kDebugMode) {
-        print('itqUpgrade: parseItemsFromXMLString exception: $e');
+        print('upgradeAlert: parseItemsFromXMLString exception: $e');
       }
     }
 
@@ -283,7 +283,7 @@ class AppCastItem {
         osVersionValue = Version.parse(osVersion);
       } catch (e) {
         if (kDebugMode) {
-          print('itqUpgrade: hostSupportsItem invalid osVersion: $e');
+          print('upgradeAlert: hostSupportsItem invalid osVersion: $e');
         }
         return false;
       }
@@ -295,7 +295,7 @@ class AppCastItem {
           }
         } on Exception catch (e) {
           if (kDebugMode) {
-            print('itqUpgrade: hostSupportsItem invalid maximumSystemVersion: $e');
+            print('upgradeAlert: hostSupportsItem invalid maximumSystemVersion: $e');
           }
         }
       }
@@ -307,7 +307,7 @@ class AppCastItem {
           }
         } on Exception catch (e) {
           if (kDebugMode) {
-            print('itqUpgrade: hostSupportsItem invalid minimumSystemVersion: $e');
+            print('upgradeAlert: hostSupportsItem invalid minimumSystemVersion: $e');
           }
         }
       }

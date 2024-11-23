@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 /// Alert types
-enum ItqAlertType { error, success, info, warning, none }
+enum AlertDialogType { error, success, info, warning, none }
 
 /// Alert animation types
-enum ItqAnimationType { fromRight, fromLeft, fromTop, fromBottom, grow, shrink }
+enum AlertAnimationType { fromRight, fromLeft, fromTop, fromBottom, grow, shrink }
 
 /// Alert style class for reusable customization of dialogs.
-class ItqAlertStyle {
-  final ItqAnimationType animationType;
+class AlertDialogStyle {
+  final AlertAnimationType animationType;
   final Duration animationDuration;
   final ShapeBorder? alertBorder;
   final bool isCloseButton;
@@ -28,8 +28,8 @@ class ItqAlertStyle {
   /// The [titleStyle] parameter sets alert title text style.
   /// The [descStyle] parameter sets alert desc text style.
   /// The [buttonAreaPadding] parameter sets button area padding.
-  const ItqAlertStyle({
-    this.animationType = ItqAnimationType.grow,
+  const AlertDialogStyle({
+    this.animationType = AlertAnimationType.grow,
     this.animationDuration = const Duration(milliseconds: 200),
     this.alertBorder,
     this.isCloseButton = true,

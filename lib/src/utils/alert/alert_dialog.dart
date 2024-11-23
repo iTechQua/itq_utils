@@ -3,10 +3,10 @@ import 'package:itq_utils/src/utils/alert/alert_style.dart';
 import 'package:itq_utils/src/utils/alert/dialog_button.dart';
 import 'package:itq_utils/src/utils/image_res.dart';
 
-class ItqAlert {
+class AlertBox {
   final BuildContext context;
-  final ItqAlertType type;
-  final ItqAlertStyle style;
+  final AlertDialogType type;
+  final AlertDialogStyle style;
   final Image? image;
   final String? title;
   final String? desc;
@@ -14,10 +14,10 @@ class ItqAlert {
   final List<DialogButton>? buttons;
 
   /// [context], [title] are required.
-  ItqAlert({
+  AlertBox({
     required this.context,
-    this.type = ItqAlertType.none,
-    this.style = const ItqAlertStyle(),
+    this.type = AlertDialogType.none,
+    this.style = const AlertDialogStyle(),
     this.image,
     this.title,
     this.desc,
@@ -215,19 +215,19 @@ class ItqAlert {
   Widget _getImage() {
     Widget response = image ?? Container();
     switch (type) {
-      case ItqAlertType.success:
+      case AlertDialogType.success:
         response = Image.asset(ImagesRes.success);
         break;
-      case ItqAlertType.error:
+      case AlertDialogType.error:
         response = Image.asset(ImagesRes.error);
         break;
-      case ItqAlertType.info:
+      case AlertDialogType.info:
         response = Image.asset(ImagesRes.info);
         break;
-      case ItqAlertType.warning:
+      case AlertDialogType.warning:
         response = Image.asset(ImagesRes.warning);
         break;
-      case ItqAlertType.none:
+      case AlertDialogType.none:
         response = Container();
         break;
     }
@@ -236,17 +236,17 @@ class ItqAlert {
 
 // Shows alert with selected animation
   _showAnimation(animation, secondaryAnimation, child) {
-    if (style.animationType == ItqAnimationType.fromRight) {
+    if (style.animationType == AlertAnimationType.fromRight) {
       return AnimationTransition.fromRight(
           animation, secondaryAnimation, child);
-    } else if (style.animationType == ItqAnimationType.fromLeft) {
+    } else if (style.animationType == AlertAnimationType.fromLeft) {
       return AnimationTransition.fromLeft(animation, secondaryAnimation, child);
-    } else if (style.animationType == ItqAnimationType.fromBottom) {
+    } else if (style.animationType == AlertAnimationType.fromBottom) {
       return AnimationTransition.fromBottom(
           animation, secondaryAnimation, child);
-    } else if (style.animationType == ItqAnimationType.grow) {
+    } else if (style.animationType == AlertAnimationType.grow) {
       return AnimationTransition.grow(animation, secondaryAnimation, child);
-    } else if (style.animationType == ItqAnimationType.shrink) {
+    } else if (style.animationType == AlertAnimationType.shrink) {
       return AnimationTransition.shrink(animation, secondaryAnimation, child);
     } else {
       return AnimationTransition.fromTop(animation, secondaryAnimation, child);

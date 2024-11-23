@@ -1,20 +1,20 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:itq_utils/src/upgrade/itq_alert_style_widget.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version_messages.dart';
+import 'package:itq_utils/src/upgrade/alert_style_widget.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_messages.dart';
 
 /// A widget to display the upgrade card.
 /// The only reason this is a [StatefulWidget] and not a [StatelessWidget] is that
 /// the widget needs to rebulid after one of the buttons have been tapped.
 /// Override the [createState] method to provide a custom class
 /// with overridden methods.
-class ItqUpgradeNewVersionCard extends StatefulWidget {
-  /// Creates a new [ItqUpgradeNewVersionCard].
-  ItqUpgradeNewVersionCard({
+class UpgradeNewVersionCard extends StatefulWidget {
+  /// Creates a new [UpgradeNewVersionCard].
+  UpgradeNewVersionCard({
     super.key,
-    ItqUpgradeNewVersion? itqUpgrade,
+    UpgradeNewVersion? upgradeAlert,
     this.margin,
     this.maxLines = 15,
     this.onIgnore,
@@ -24,10 +24,10 @@ class ItqUpgradeNewVersionCard extends StatefulWidget {
     this.showIgnore = true,
     this.showLater = true,
     this.showReleaseNotes = true,
-  }) : upgrade = itqUpgrade ?? ItqUpgradeNewVersion.sharedInstance;
+  }) : upgrade = upgradeAlert ?? UpgradeNewVersion.sharedInstance;
 
   /// The upgrade used to configure the upgrade dialog.
-  final ItqUpgradeNewVersion upgrade;
+  final UpgradeNewVersion upgrade;
 
   /// The empty space that surrounds the card.
   ///
@@ -61,11 +61,11 @@ class ItqUpgradeNewVersionCard extends StatefulWidget {
   final bool showReleaseNotes;
 
   @override
-  ItqUpgradeNewVersionCardState createState() => ItqUpgradeNewVersionCardState();
+  UpgradeNewVersionCardState createState() => UpgradeNewVersionCardState();
 }
 
-/// The [ItqUpgradeNewVersionCard] widget state.
-class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
+/// The [UpgradeNewVersionCard] widget state.
+class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
   @override
   void initState() {
     super.initState();
@@ -77,7 +77,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
   Widget build(BuildContext context) {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: build UpgradeCard');
+        print('upgradeAlert: build UpgradeCard');
       }
     }
 
@@ -85,7 +85,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
         initialData: widget.upgrade.evaluationReady,
         stream: widget.upgrade.evaluationStream,
         builder: (BuildContext context,
-            AsyncSnapshot<ItqUpgradeEvaluateNeed> snapshot) {
+            AsyncSnapshot<UpgradeEvaluateNeed> snapshot) {
           if ((snapshot.connectionState == ConnectionState.waiting ||
                   snapshot.connectionState == ConnectionState.active) &&
               snapshot.data != null &&
@@ -96,7 +96,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
             } else {
               if (widget.upgrade.debugLogging) {
                 if (kDebugMode) {
-                  print('itqUpgrade: UpgradeCard will not display');
+                  print('upgradeAlert: UpgradeCard will not display');
                 }
               }
             }
@@ -108,19 +108,19 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
   /// Build the UpgradeCard widget.
   Widget buildUpgradeCard(BuildContext context, Key? key) {
     final appMessages = widget.upgrade.determineMessages(context);
-    final title = appMessages.message(ItqUpgradeMessage.title);
+    final title = appMessages.message(upgradeAlertMessage.title);
     final message = widget.upgrade.body(appMessages);
     final releaseNotes = widget.upgrade.releaseNotes;
 
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: UpgradeCard: will display');
-        print('itqUpgrade: UpgradeCard: showDialog title: $title');
-        print('itqUpgrade: UpgradeCard: showDialog message: $message');
+        print('upgradeAlert: UpgradeCard: will display');
+        print('upgradeAlert: UpgradeCard: showDialog title: $title');
+        print('upgradeAlert: UpgradeCard: showDialog message: $message');
         print(
-            'itqUpgrade: UpgradeCard: shouldDisplayReleaseNotes: $shouldDisplayReleaseNotes');
+            'upgradeAlert: UpgradeCard: shouldDisplayReleaseNotes: $shouldDisplayReleaseNotes');
 
-        print('itqUpgrade: UpgradeCard: showDialog releaseNotes: $releaseNotes');
+        print('upgradeAlert: UpgradeCard: showDialog releaseNotes: $releaseNotes');
       }
     }
 
@@ -132,7 +132,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(appMessages.message(ItqUpgradeMessage.releaseNotes) ?? '',
+              Text(appMessages.message(upgradeAlertMessage.releaseNotes) ?? '',
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(
                 releaseNotes,
@@ -146,7 +146,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
     return Card(
       key: key,
       margin: widget.margin,
-      child: ItqAlertStyleWidget(
+      child: AlertStyleWidget(
         title: Text(title ?? ''),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -156,7 +156,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
             Text(message),
             Padding(
                 padding: const EdgeInsets.only(top: 15.0),
-                child: Text(appMessages.message(ItqUpgradeMessage.prompt) ?? '')),
+                child: Text(appMessages.message(upgradeAlertMessage.prompt) ?? '')),
             if (notes != null) notes,
           ],
         ),
@@ -167,7 +167,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
 
   void forceRebuild() => setState(() {});
 
-  List<Widget> actions(ItqUpgradeMessages appMessages) {
+  List<Widget> actions(UpgradeAlertMessages appMessages) {
     final isBlocked = widget.upgrade.blocked();
     final showIgnore = isBlocked ? false : widget.showIgnore;
     final showLater = isBlocked ? false : widget.showLater;
@@ -175,7 +175,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
       if (showIgnore)
         TextButton(
             child: Text(
-                appMessages.message(ItqUpgradeMessage.buttonTitleIgnore) ?? ''),
+                appMessages.message(upgradeAlertMessage.buttonTitleIgnore) ?? ''),
             onPressed: () {
               // Save the date/time as the last time alerted.
               widget.upgrade.saveLastAlerted();
@@ -186,7 +186,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
       if (showLater)
         TextButton(
             child: Text(
-                appMessages.message(ItqUpgradeMessage.buttonTitleLater) ?? ''),
+                appMessages.message(upgradeAlertMessage.buttonTitleLater) ?? ''),
             onPressed: () {
               // Save the date/time as the last time alerted.
               widget.upgrade.saveLastAlerted();
@@ -196,7 +196,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
             }),
       TextButton(
           child: Text(
-              appMessages.message(ItqUpgradeMessage.buttonTitleUpdate) ?? ''),
+              appMessages.message(upgradeAlertMessage.buttonTitleUpdate) ?? ''),
           onPressed: () {
             // Save the date/time as the last time alerted.
             widget.upgrade.saveLastAlerted();
@@ -213,7 +213,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
   void onUserIgnored() {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: button tapped: ignore');
+        print('upgradeAlert: button tapped: ignore');
       }
     }
 
@@ -230,7 +230,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
   void onUserLater() {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: button tapped: later');
+        print('upgradeAlert: button tapped: later');
       }
     }
 
@@ -243,7 +243,7 @@ class ItqUpgradeNewVersionCardState extends State<ItqUpgradeNewVersionCard> {
   void onUserUpdated() {
     if (widget.upgrade.debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: button tapped: update now');
+        print('upgradeAlert: button tapped: update now');
       }
     }
 

@@ -3,11 +3,11 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:itq_utils/src/upgrade/itq_app_cast.dart';
-import 'package:itq_utils/src/upgrade/itq_itunes_search_api.dart';
-import 'package:itq_utils/src/upgrade/itq_play_store_search_api.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version_messages.dart';
-import 'package:itq_utils/src/upgrade/itq_upgrade_new_version_os.dart';
+import 'package:itq_utils/src/upgrade/app_cast.dart';
+import 'package:itq_utils/src/upgrade/itunes_search_api.dart';
+import 'package:itq_utils/src/upgrade/play_store_search_api.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_messages.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,27 +30,27 @@ typedef WillDisplayUpgradeCallback = void Function(
     String? appStoreVersion});
 
 /// The type of data in the stream.
-typedef ItqUpgradeEvaluateNeed = bool;
+typedef UpgradeEvaluateNeed = bool;
 
 /// A class to define the configuration for the appcast. The configuration
 /// contains two parts: a URL to the appcast, and a list of supported OS
 /// names, such as "android", "fuchsia", "ios", "linux" "macos", "web", "windows".
-class ItqAppCastConfiguration {
+class AppCastConfiguration {
   final List<String>? supportedOS;
   final String? url;
 
-  ItqAppCastConfiguration({
+  AppCastConfiguration({
     this.supportedOS,
     this.url,
   });
 }
 
-/// Creates a shared instance of [ItqUpgradeNewVersion].
-ItqUpgradeNewVersion _sharedInstance = ItqUpgradeNewVersion();
+/// Creates a shared instance of [UpgradeNewVersion].
+UpgradeNewVersion _sharedInstance = UpgradeNewVersion();
 
 /// A class to configure the upgrade dialog.
-class ItqUpgradeNewVersion with WidgetsBindingObserver {
-  ItqUpgradeNewVersion({
+class UpgradeNewVersion with WidgetsBindingObserver {
+  UpgradeNewVersion({
     this.appCastConfig,
     this.appcast,
     this.messages,
@@ -63,20 +63,20 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     this.countryCode,
     this.languageCode,
     this.minAppVersion,
-    ItqUpgradeOS? upgradeOS,
+    UpgradeOS? upgradeOS,
   })  : client = client ?? http.Client(),
-        upgradeOS = upgradeOS ?? ItqUpgradeOS() {
+        upgradeOS = upgradeOS ?? UpgradeOS() {
     if (debugLogging){ if (kDebugMode) {
-      print("itqUpgrade: instantiated.");
+      print("upgradeAlert: instantiated.");
     }}
   }
 
   /// Provide an Appcast that can be replaced for mock testing.
-  final ItqAppCast? appcast;
+  final AppCast? appcast;
 
-  /// The appcast configuration ([ItqAppCastConfiguration]) used by [ItqAppCast].
+  /// The appcast configuration ([AppCastConfiguration]) used by [ItqAppCast].
   /// When an appcast is configured for iOS, the iTunes lookup is not used.
-  final ItqAppCastConfiguration? appCastConfig;
+  final AppCastConfiguration? appCastConfig;
 
   /// Provide an HTTP Client that can be replaced for mock testing.
   final http.Client client;
@@ -100,16 +100,16 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
   final Duration durationUntilAlertAgain;
 
   /// The localized messages used for display in upgrade.
-  ItqUpgradeMessages? messages;
+  UpgradeAlertMessages? messages;
 
   /// The minimum app version supported by this app. Earlier versions of this app
   /// will be forced to update to the current version. Optional.
   String? minAppVersion;
 
   /// Provides information on which OS this code is running on.
-  final ItqUpgradeOS upgradeOS;
+  final UpgradeOS upgradeOS;
 
-  /// Called when [ItqUpgradeNewVersion] determines that an upgrade may or may not be
+  /// Called when [UpgradeNewVersion] determines that an upgrade may or may not be
   /// displayed. The [value] parameter will be true when it should be displayed,
   /// and false when it should not be displayed. One good use for this callback
   /// is logging metrics for your app.
@@ -134,18 +134,18 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
 
   /// A stream that provides a new value each time an evaluation should be performed.
   /// The values will always be null or true.
-  Stream<ItqUpgradeEvaluateNeed> get evaluationStream => _streamController.stream;
-  final _streamController = StreamController<ItqUpgradeEvaluateNeed>.broadcast();
+  Stream<UpgradeEvaluateNeed> get evaluationStream => _streamController.stream;
+  final _streamController = StreamController<UpgradeEvaluateNeed>.broadcast();
 
   /// An evaluation should be performed.
   bool get evaluationReady => _evaluationReady;
   bool _evaluationReady = false;
 
-  /// A shared instance of [ItqUpgradeNewVersion].
-  static ItqUpgradeNewVersion get sharedInstance => _sharedInstance;
+  /// A shared instance of [UpgradeNewVersion].
+  static UpgradeNewVersion get sharedInstance => _sharedInstance;
 
   static const notInitializedExceptionMessage =
-      'itqUpgrade: initialize() not called. Must be called first.';
+      'upgradeAlert: initialize() not called. Must be called first.';
 
   String? get currentAppStoreListingURL => _appStoreListingURL;
 
@@ -164,12 +164,12 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
 
   void installAppStoreListingURL(String url) => _appStoreListingURL = url;
 
-  /// Initialize [ItqUpgradeNewVersion] by getting saved preferences, getting platform package info, and getting
+  /// Initialize [UpgradeNewVersion] by getting saved preferences, getting platform package info, and getting
   /// released version info.
   Future<bool> initialize() async {
     if (debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: initialize called');
+        print('upgradeAlert: initialize called');
       }
     }
     if (_futureInit != null) return _futureInit!;
@@ -177,7 +177,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     _futureInit = Future(() async {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: initializing');
+          print('upgradeAlert: initializing');
         }
       }
       if (_initCalled) {
@@ -190,10 +190,10 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
 
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: default operatingSystem: '
+          print('upgradeAlert: default operatingSystem: '
             '${upgradeOS.operatingSystem} ${upgradeOS.operatingSystemVersion}');
-          print('itqUpgrade: operatingSystem: ${upgradeOS.operatingSystem}');
-          print('itqUpgrade: '
+          print('upgradeAlert: operatingSystem: ${upgradeOS.operatingSystem}');
+          print('upgradeAlert: '
             'isAndroid: ${upgradeOS.isAndroid}, '
             'isIOS: ${upgradeOS.isIOS}, '
             'isLinux: ${upgradeOS.isLinux}, '
@@ -209,9 +209,9 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
         if (debugLogging) {
           if (kDebugMode) {
             print(
-              'itqUpgrade: package info packageName: ${_packageInfo!.packageName}');
-            print('itqUpgrade: package info appName: ${_packageInfo!.appName}');
-            print('itqUpgrade: package info version: ${_packageInfo!.version}');
+              'upgradeAlert: package info packageName: ${_packageInfo!.packageName}');
+            print('upgradeAlert: package info appName: ${_packageInfo!.appName}');
+            print('upgradeAlert: package info version: ${_packageInfo!.version}');
           }
         }
       }
@@ -260,16 +260,16 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     if (isAppcastThisPlatform()) {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: appcast is available for this platform');
+          print('upgradeAlert: appcast is available for this platform');
         }
       }
 
-      final appcast = this.appcast ?? ItqAppCast(client: client);
+      final appcast = this.appcast ?? AppCast(client: client);
       await appcast.parseAppCastItemsFromUri(appCastConfig!.url!);
       if (debugLogging) {
         var count = appcast.items == null ? 0 : appcast.items!.length;
         if (kDebugMode) {
-          print('itqUpgrade: appcast item count: $count');
+          print('upgradeAlert: appcast item count: $count');
         }
       }
       final criticalUpdateItem = appcast.bestCriticalItem();
@@ -282,9 +282,9 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
         if (debugLogging) {
           if (kDebugMode) {
             print(
-              'itqUpgrade: appcast best item version: ${bestItem.versionString}');
+              'upgradeAlert: appcast best item version: ${bestItem.versionString}');
             print(
-                'itqUpgrade: appcast critical update item version: ${criticalUpdateItem?.versionString}');
+                'upgradeAlert: appcast critical update item version: ${criticalUpdateItem?.versionString}');
           }
         }
 
@@ -296,7 +296,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
           }
         } catch (e) {
           if (kDebugMode) {
-            print('itqUpgrade: updateVersionInfo could not parse version info $e');
+            print('upgradeAlert: updateVersionInfo could not parse version info $e');
           }
           _isCriticalUpdate = false;
         }
@@ -314,7 +314,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
       final country = countryCode ?? findCountryCode();
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: countryCode: $country');
+          print('upgradeAlert: countryCode: $country');
         }
       }
 
@@ -322,7 +322,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
       final language = languageCode ?? findLanguageCode();
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: languageCode: $language');
+          print('upgradeAlert: languageCode: $language');
         }
       }
 
@@ -346,7 +346,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
             minAppVersion = mav.toString();
             if (debugLogging) {
               if (kDebugMode) {
-                print('itqUpgrade: ITunesResults.minAppVersion: $minAppVersion');
+                print('upgradeAlert: ITunesResults.minAppVersion: $minAppVersion');
               }
             }
           }
@@ -361,7 +361,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
   Future<bool?> getAndroidStoreVersion(
       {String? country, String? language}) async {
     final id = _packageInfo!.packageName;
-    final playStore = ItqPlayStoreSearchAPI(client: client);
+    final playStore = PlayStoreSearchAPI(client: client);
     playStore.debugLogging = debugLogging;
     final response =
         await (playStore.lookupById(id, country: country, language: language));
@@ -375,7 +375,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
         minAppVersion = mav.toString();
         if (debugLogging) {
           if (kDebugMode) {
-            print('itqUpgrade: PlayStoreResults.minAppVersion: $minAppVersion');
+            print('upgradeAlert: PlayStoreResults.minAppVersion: $minAppVersion');
           }
         }
       }
@@ -404,7 +404,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
 
   bool verifyInit() {
     if (!_initCalled) {
-      throw ('itqUpgrade: initialize() not called. Must be called first.');
+      throw ('upgradeAlert: initialize() not called. Must be called first.');
     }
     return true;
   }
@@ -414,8 +414,8 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     return _packageInfo?.appName ?? '';
   }
 
-  String body(ItqUpgradeMessages messages) {
-    var msg = messages.message(ItqUpgradeMessage.body)!;
+  String body(UpgradeAlertMessages messages) {
+    var msg = messages.message(upgradeAlertMessage.body)!;
     msg = msg.replaceAll('{{appName}}', appName());
     msg = msg.replaceAll(
         '{{currentAppStoreVersion}}', currentAppStoreVersion ?? '');
@@ -424,11 +424,11 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     return msg;
   }
 
-  /// Determine which [ItqUpgradeMessages] object to use. It will be either the one passed
-  /// to [ItqUpgradeNewVersion], or one based on the app locale.
-  ItqUpgradeMessages determineMessages(BuildContext context) {
+  /// Determine which [UpgradeAlertMessages] object to use. It will be either the one passed
+  /// to [UpgradeNewVersion], or one based on the app locale.
+  UpgradeAlertMessages determineMessages(BuildContext context) {
     {
-      late ItqUpgradeMessages appMessages;
+      late UpgradeAlertMessages appMessages;
       if (messages != null) {
         appMessages = messages!;
       } else {
@@ -440,23 +440,23 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
           languageCode = locale.languageCode;
           if (debugLogging) {
             if (kDebugMode) {
-              print('itqUpgrade: current locale: $locale');
+              print('upgradeAlert: current locale: $locale');
             }
           }
         } catch (e) {
           // ignored, really.
         }
 
-        appMessages = ItqUpgradeMessages(code: languageCode);
+        appMessages = UpgradeAlertMessages(code: languageCode);
       }
 
       if (appMessages.languageCode.isEmpty) {
         if (kDebugMode) {
-          print('itqUpgrade: error -> languageCode is empty');
+          print('upgradeAlert: error -> languageCode is empty');
         }
       } else if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: languageCode: ${appMessages.languageCode}');
+          print('upgradeAlert: languageCode: ${appMessages.languageCode}');
         }
       }
 
@@ -473,10 +473,10 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
 
     if (debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: blocked: $isBlocked');
-        print('itqUpgrade: debugDisplayAlways: $debugDisplayAlways');
-        print('itqUpgrade: debugDisplayOnce: $debugDisplayOnce');
-        print('itqUpgrade: hasAlerted: $_hasAlerted');
+        print('upgradeAlert: blocked: $isBlocked');
+        print('upgradeAlert: debugDisplayAlways: $debugDisplayAlways');
+        print('upgradeAlert: debugDisplayOnce: $debugDisplayOnce');
+        print('upgradeAlert: hasAlerted: $_hasAlerted');
       }
     }
 
@@ -492,7 +492,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     }
     if (debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: shouldDisplayUpgrade: $rv');
+        print('upgradeAlert: shouldDisplayUpgrade: $rv');
       }
     }
 
@@ -536,7 +536,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     final rv = lastAlertedDuration < durationUntilAlertAgain;
     if (rv && debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: isTooSoon: true');
+        print('upgradeAlert: isTooSoon: true');
       }
     }
     return rv;
@@ -547,7 +547,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
         _userIgnoredVersion != null && _userIgnoredVersion == _appStoreVersion;
     if (rv && debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: alreadyIgnoredThisVersion: true');
+        print('upgradeAlert: alreadyIgnoredThisVersion: true');
       }
     }
     return rv;
@@ -556,14 +556,14 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
   bool isUpdateAvailable() {
     if (debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: appStoreVersion: $_appStoreVersion');
-        print('itqUpgrade: installedVersion: $_installedVersion');
-        print('itqUpgrade: minAppVersion: $minAppVersion');
+        print('upgradeAlert: appStoreVersion: $_appStoreVersion');
+        print('upgradeAlert: installedVersion: $_installedVersion');
+        print('upgradeAlert: minAppVersion: $minAppVersion');
       }
     }
     if (_appStoreVersion == null || _installedVersion == null) {
       if (debugLogging){ if (kDebugMode) {
-        print('itqUpgrade: isUpdateAvailable: false');
+        print('upgradeAlert: isUpdateAvailable: false');
       }}
       return false;
     }
@@ -577,13 +577,13 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     } on Exception catch (e) {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: isUpdateAvailable: $e');
+          print('upgradeAlert: isUpdateAvailable: $e');
         }
       }
     }
     final isAvailable = _updateAvailable != null;
     if (debugLogging){ if (kDebugMode) {
-      print('itqUpgrade: isUpdateAvailable: $isAvailable');
+      print('upgradeAlert: isUpdateAvailable: $isAvailable');
     }}
     return isAvailable;
   }
@@ -667,7 +667,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
     if (_appStoreListingURL == null || _appStoreListingURL!.isEmpty) {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: empty _appStoreListingURL');
+          print('upgradeAlert: empty _appStoreListingURL');
         }
       }
       return;
@@ -675,7 +675,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
 
     if (debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: launching: $_appStoreListingURL');
+        print('upgradeAlert: launching: $_appStoreListingURL');
       }
     }
 
@@ -688,7 +688,7 @@ class ItqUpgradeNewVersion with WidgetsBindingObserver {
       } catch (e) {
         if (debugLogging) {
           if (kDebugMode) {
-            print('itqUpgrade: launch to app store failed: $e');
+            print('upgradeAlert: launch to app store failed: $e');
           }
         }
       }

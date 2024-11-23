@@ -4,8 +4,8 @@ import 'package:html/parser.dart' show parse;
 import 'package:http/http.dart' as http;
 import 'package:version/version.dart';
 
-class ItqPlayStoreSearchAPI {
-  ItqPlayStoreSearchAPI({http.Client? client}) : client = client ?? http.Client();
+class PlayStoreSearchAPI {
+  PlayStoreSearchAPI({http.Client? client}) : client = client ?? http.Client();
 
   /// Play Store Search Api URL
   final String playStorePrefixURL = 'play.google.com';
@@ -28,7 +28,7 @@ class ItqPlayStoreSearchAPI {
         country: country, language: language, useCacheBuster: useCacheBuster)!;
     if (debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: lookupById url: $url');
+        print('upgradeAlert: lookupById url: $url');
       }
     }
 
@@ -38,7 +38,7 @@ class ItqPlayStoreSearchAPI {
         if (debugLogging) {
           if (kDebugMode) {
             print(
-              'itqUpgrade: Can\'t find an app in the Play Store with the id: $id');
+              'upgradeAlert: Can\'t find an app in the Play Store with the id: $id');
           }
         }
         return null;
@@ -50,7 +50,7 @@ class ItqPlayStoreSearchAPI {
     } on Exception catch (e) {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: lookupById exception: $e');
+          print('upgradeAlert: lookupById exception: $e');
         }
       }
       return null;
@@ -89,7 +89,7 @@ class ItqPlayStoreSearchAPI {
   }
 }
 
-extension PlayStoreResults on ItqPlayStoreSearchAPI {
+extension PlayStoreResults on PlayStoreSearchAPI {
   static RegExp releaseNotesSpan = RegExp(r'>(.*?)</span>');
 
   /// Return field description from Play Store results.
@@ -117,7 +117,7 @@ extension PlayStoreResults on ItqPlayStoreSearchAPI {
     } catch (e) {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: PlayStoreResults.redesignedDescription exception: $e');
+          print('upgradeAlert: PlayStoreResults.redesignedDescription exception: $e');
         }
       }
     }
@@ -149,7 +149,7 @@ extension PlayStoreResults on ItqPlayStoreSearchAPI {
             if (debugLogging) {
               if (kDebugMode) {
                 print(
-                  'itqUpgrade: PlayStoreResults.minAppVersion: mav=$mav, tag=$tagRegExpSource, error=$e');
+                  'upgradeAlert: PlayStoreResults.minAppVersion: mav=$mav, tag=$tagRegExpSource, error=$e');
               }
             }
           }
@@ -201,7 +201,7 @@ extension PlayStoreResults on ItqPlayStoreSearchAPI {
       if (debugLogging) {
         if (kDebugMode) {
           print(
-            'itqUpgrade: PlayStoreResults.redesignedReleaseNotes exception: $e');
+            'upgradeAlert: PlayStoreResults.redesignedReleaseNotes exception: $e');
         }
       }
     }
@@ -284,7 +284,7 @@ extension PlayStoreResults on ItqPlayStoreSearchAPI {
     } catch (e) {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: PlayStoreResults.redesignedVersion exception: $e');
+          print('upgradeAlert: PlayStoreResults.redesignedVersion exception: $e');
         }
       }
     }

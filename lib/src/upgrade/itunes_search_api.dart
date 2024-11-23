@@ -36,7 +36,7 @@ class ITunesSearchAPI {
         country: country ??= '', useCacheBuster: useCacheBuster)!;
     if (debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: download: $url');
+        print('upgradeAlert: download: $url');
       }
     }
 
@@ -44,7 +44,7 @@ class ITunesSearchAPI {
       final response = await client!.get(Uri.parse(url));
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: response statusCode: ${response.statusCode}');
+          print('upgradeAlert: response statusCode: ${response.statusCode}');
         }
       }
 
@@ -53,7 +53,7 @@ class ITunesSearchAPI {
     } catch (e) {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: lookupByBundleId exception: $e');
+          print('upgradeAlert: lookupByBundleId exception: $e');
         }
       }
       return null;
@@ -74,7 +74,7 @@ class ITunesSearchAPI {
         lookupURLById(id, country: country, useCacheBuster: useCacheBuster)!;
     if (debugLogging) {
       if (kDebugMode) {
-        print('itqUpgrade: download: $url');
+        print('upgradeAlert: download: $url');
       }
     }
     try {
@@ -84,7 +84,7 @@ class ITunesSearchAPI {
     } catch (e) {
       if (debugLogging) {
         if (kDebugMode) {
-          print('itqUpgrade: lookupById exception: $e');
+          print('upgradeAlert: lookupById exception: $e');
         }
       }
       return null;
@@ -225,7 +225,7 @@ extension ITunesResults on ITunesSearchAPI {
             if (debugLogging) {
               if (kDebugMode) {
                 print(
-                  'itqUpgrade: ITunesResults.minAppVersion: $tagName error: $e');
+                  'upgradeAlert: ITunesResults.minAppVersion: $tagName error: $e');
               }
             }
           }

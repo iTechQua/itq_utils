@@ -113,7 +113,7 @@ class _ItqAppBarState extends State<ItqAppBar> {
                   ? GestureDetector(
                   onTap: () {
                     if (widget.isBackFunction) {
-                      itqOnBackPressed(context);
+                      showExitConfirmationDialog(context);
                     } else {
                       Navigator.of(context).pop();
                     }

@@ -1,3 +1,12 @@
+## 1.0.8
+- Added image slider
+- Added relative date format
+- Added slide animation
+- Added decorated tab bar
+- Added ease in widget
+- Added emergent app button
+- Added emergent text form field
+- Update upgrade dialog
 ## 1.0.7
 - Added dropdown search
 ## 1.0.6
