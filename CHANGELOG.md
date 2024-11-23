@@ -1,3 +1,9 @@
+## 2.0.0
+- Added chat UI
+- Added age calculator
+## 1.0.9
+- Added dotted border
+- Update app bar
 ## 1.0.8
 - Added image slider
 - Added relative date format

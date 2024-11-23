@@ -464,11 +464,11 @@ Future<void> splashDelay({int second = 2}) async {
 
 
 /// Convert Time Format
-String itqFormatTime(int timeNum) =>
+String formatLocalTime(int timeNum) =>
     timeNum < 10 ? "0$timeNum" : timeNum.toString();
 
 /// Calculate Age
-String itqCalculateAge(String birthDateString) {
+String calculateAge(String birthDateString) {
   String datePattern = "dd-MM-yyyy";
   DateTime today = DateFormat(datePattern).parse(DateTime.now().toString());
   DateTime birthDate = DateFormat(datePattern).parse(birthDateString);
@@ -478,7 +478,7 @@ String itqCalculateAge(String birthDateString) {
 }
 
 /// Validate Text Input Field
-bool itqValidateTextInputField(
+bool validateTextInputField(
     BuildContext context, TextEditingController controller, String fieldName,
     {FocusNode? focusNode}) {
   if (controller.text.isEmpty) {
@@ -494,7 +494,7 @@ bool itqValidateTextInputField(
 }
 
 /// Validate Text Field or Dropdown Value
-bool itqValidateTextField(BuildContext context, var controller, String fieldName,
+bool validateTextField(BuildContext context, var controller, String fieldName,
     {FocusNode? focusNode}) {
   if (controller.isEmpty) {
     if (focusNode != null) {
@@ -509,7 +509,7 @@ bool itqValidateTextField(BuildContext context, var controller, String fieldName
 }
 
 /// Lies Between Times
-bool itqLiesBetweenTimes(String sTime, String eTime) {
+bool liesBetweenTimes(String sTime, String eTime) {
   DateTime now = DateTime.now();
   var format = DateFormat("HH:mm");
   var startTime = format.parse(sTime);
@@ -525,7 +525,7 @@ bool itqLiesBetweenTimes(String sTime, String eTime) {
 }
 
 /// Check Age if age is greater than 18 year or not
-bool itqCheckMature(String birthDateString) {
+bool checkMature(String birthDateString) {
   String datePattern = "dd-MM-yyyy";
   DateTime today = DateTime.now();
   DateTime birthDate = DateFormat(datePattern).parse(birthDateString);
@@ -539,7 +539,7 @@ bool itqCheckMature(String birthDateString) {
 }
 
 /// Time Difference
-String itqTimeDifference(String startTime, String endTime) {
+String timeDifference(String startTime, String endTime) {
   var format = DateFormat("HH:mm");
   DateTime now = DateTime.now();
   var sTime = format.parse(startTime);
@@ -559,7 +559,7 @@ RoundedRectangleBorder itqRoundedRectangleShape = RoundedRectangleBorder(
 );
 
 /// returns gradient
-Gradient itqGradient(
+Gradient gradientColor(
     [Color secondGradientColor = textSecondaryColor,
       Color firstGradientColor = textPrimaryColor,
       AlignmentGeometry begin = Alignment.topCenter,

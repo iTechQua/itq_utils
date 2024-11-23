@@ -44,7 +44,7 @@ export 'src/models/language_data_model.dart';
 export 'src/models/package_info_model.dart';
 export 'src/models/walkthrough_model.dart';
 export 'src/utils/alert_dialog.dart';
-export 'src/utils/app_bar.dart';
+export 'src/utils/stacked_app_bar.dart';
 export 'src/utils/app_stack_loader.dart';
 export 'src/utils/after_layout.dart';
 export 'src/utils/colors.dart';
@@ -65,6 +65,7 @@ export 'src/utils/system_utils.dart';
 export 'src/utils/text_styles.dart';
 export 'src/utils/time_formatter.dart';
 
+export 'src/utils/calculate_age.dart';
 export 'src/utils/slide_animation.dart';
 export 'src/utils/relative_date_format.dart';
 export 'src/utils/image_slider.dart';
@@ -76,6 +77,8 @@ export 'src/utils/alert/alert_dialog.dart';
 export 'src/utils/drag/drag_drop.dart';
 export 'src/utils/drag/drag_drop_view.dart';
 export 'src/utils/drag/grid_orbit.dart';
+export 'src/utils/border/dash_painter.dart';
+export 'src/utils/border/dotted_border.dart';
 
 export 'src/widgets/animatedList/animated_configurations.dart';
 export 'src/widgets/animatedList/animated_list_view.dart';
@@ -171,6 +174,34 @@ export 'src/dropdown_search/properties/menu_props.dart';
 export 'src/dropdown_search/properties/modal_bottom_sheet_props.dart';
 export 'src/dropdown_search/properties/popup_props.dart';
 export 'src/dropdown_search/properties/text_field_props.dart';
+
+export 'package:itq_utils/src/chat_ui/chat_l10n.dart';
+export 'package:itq_utils/src/chat_ui/chat_theme.dart';
+export 'package:itq_utils/src/chat_ui/models/bubble_rtl_alignment.dart';
+export 'package:itq_utils/src/chat_ui/models/emoji_enlargement_behavior.dart';
+export 'package:itq_utils/src/chat_ui/models/input_clear_mode.dart';
+export 'package:itq_utils/src/chat_ui/models/pattern_style.dart';
+export 'package:itq_utils/src/chat_ui/models/send_button_visibility_mode.dart';
+export 'package:itq_utils/src/chat_ui/models/typing_indicator_mode.dart';
+export 'package:itq_utils/src/chat_ui/util.dart'
+    show formatBytes, isConsistsOfEmojis;
+export 'package:itq_utils/src/chat_ui/widgets/chat.dart';
+export 'package:itq_utils/src/chat_ui/widgets/chat_list.dart';
+export 'package:itq_utils/src/chat_ui/widgets/image_gallery.dart';
+export 'package:itq_utils/src/chat_ui/widgets/input/attachment_button.dart';
+export 'package:itq_utils/src/chat_ui/widgets/input/input.dart';
+export 'package:itq_utils/src/chat_ui/widgets/input/input_text_field_controller.dart';
+export 'package:itq_utils/src/chat_ui/widgets/input/send_button.dart';
+export 'package:itq_utils/src/chat_ui/widgets/message/file_message.dart';
+export 'package:itq_utils/src/chat_ui/widgets/message/image_message.dart';
+export 'package:itq_utils/src/chat_ui/widgets/message/message.dart';
+export 'package:itq_utils/src/chat_ui/widgets/message/message_status.dart';
+export 'package:itq_utils/src/chat_ui/widgets/message/system_message.dart';
+export 'package:itq_utils/src/chat_ui/widgets/message/text_message.dart';
+export 'package:itq_utils/src/chat_ui/widgets/message/user_avatar.dart';
+export 'package:itq_utils/src/chat_ui/widgets/message/user_name.dart';
+export 'package:itq_utils/src/chat_ui/widgets/typing_indicator.dart';
+export 'package:itq_utils/src/chat_ui/widgets/unread_header.dart';
 
 
 //region Global variables - This variables can be changed.

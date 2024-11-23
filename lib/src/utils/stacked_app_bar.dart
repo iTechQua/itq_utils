@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:itq_utils/itq_utils.dart';
 
-class ItqAppBar extends StatefulWidget {
+class StackedAppBar extends StatefulWidget {
   final double topPadding;
   final Widget child;
   final String? title;
@@ -22,7 +22,7 @@ class ItqAppBar extends StatefulWidget {
   final Widget? actionWidget;
   final Widget? titleSuffix;
   final GestureTapCallback? onTap;
-  const ItqAppBar(
+  const StackedAppBar(
       {super.key,
         this.backButtonImage,
         this.onTap,
@@ -44,10 +44,10 @@ class ItqAppBar extends StatefulWidget {
         this.title});
 
   @override
-  State<ItqAppBar> createState() => _ItqAppBarState();
+  State<StackedAppBar> createState() => _StackedAppBarState();
 }
 
-class _ItqAppBarState extends State<ItqAppBar> {
+class _StackedAppBarState extends State<StackedAppBar> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -56,7 +56,7 @@ class _ItqAppBarState extends State<ItqAppBar> {
         Container(
           constraints: const BoxConstraints.expand(),
           decoration: BoxDecoration(
-            gradient: itqGradient(),
+            gradient: gradientColor(),
           ),
           padding: EdgeInsets.only(
               top: Platform.isAndroid
