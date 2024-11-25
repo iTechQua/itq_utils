@@ -1,3 +1,5 @@
+## 2.0.1
+- Updated dimensions error
 ## 2.0.0
 - Added chat UI
 - Added age calculator

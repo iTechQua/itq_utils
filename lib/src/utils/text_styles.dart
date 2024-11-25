@@ -179,22 +179,24 @@ class Dimens {
 }
 
 class Dimensions {
-  static double calcH(double height) {
-    double factor = MediaQuery.of(getContext).size.height / height;
-    return (MediaQuery.of(getContext).size.height / factor).roundToDouble();
+  BuildContext context;
+  Dimensions({required this.context});
+  double calcH(double height) {
+    double factor = MediaQuery.of(context).size.height / height;
+    return (MediaQuery.of(context).size.height / factor).roundToDouble();
   }
 
-  static double calcW(double width) {
-    double factor = MediaQuery.of(getContext).size.width / width;
-    return (MediaQuery.of(getContext).size.width / factor).roundToDouble();
+  double calcW(double width) {
+    double factor = MediaQuery.of(context).size.width / width;
+    return (MediaQuery.of(context).size.width / factor).roundToDouble();
   }
 
-  static double fontSizeExtraSmall = MediaQuery.of(getContext).size.width >= 1300 ? 14 : 10;
-  static double fontSizeSmall = MediaQuery.of(getContext).size.width >= 1300 ? 16 : 12;
-  static double fontSizeDefault = MediaQuery.of(getContext).size.width >= 1300 ? 18 : 14;
-  static double fontSizeLarge = MediaQuery.of(getContext).size.width >= 1300 ? 20 : 16;
-  static double fontSizeExtraLarge = MediaQuery.of(getContext).size.width >= 1300 ? 22 : 18;
-  static double fontSizeOverLarge = MediaQuery.of(getContext).size.width >= 1300 ? 28 : 24;
+  static double fontSizeExtraSmall = MediaQuery.of(getContext!).size.width >= 1300 ? 14 : 10;
+  static double fontSizeSmall = MediaQuery.of(getContext!).size.width >= 1300 ? 16 : 12;
+  static double fontSizeDefault = MediaQuery.of(getContext!).size.width >= 1300 ? 18 : 14;
+  static double fontSizeLarge = MediaQuery.of(getContext!).size.width >= 1300 ? 20 : 16;
+  static double fontSizeExtraLarge = MediaQuery.of(getContext!).size.width >= 1300 ? 22 : 18;
+  static double fontSizeOverLarge = MediaQuery.of(getContext!).size.width >= 1300 ? 28 : 24;
 
   static const double paddingSizeExtraSmall = 5.0;
   static const double paddingSizeSmall = 10.0;
