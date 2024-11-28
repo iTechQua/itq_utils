@@ -1,3 +1,5 @@
+## 2.0.2
+- iOS error fixed
 ## 2.0.1
 - Updated dimensions error
 ## 2.0.0
