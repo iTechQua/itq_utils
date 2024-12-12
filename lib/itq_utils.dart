@@ -1,19 +1,17 @@
 library itq_utils;
 
+import 'itq_utils.dart';
+import 'package:flutter/services.dart';
+
 export 'package:flutter/material.dart'
     show
     TextTheme,
     ThemeMode,
     RouteFactory,
     GenerateAppTitle,
-    InitialRouteListFactory;
+    InitialRouteListFactory,
+    Colors;
 export 'package:flutter/widgets.dart';
-
-import 'dart:async';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:itq_utils/itq_utils.dart';
 
 export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:fluttertoast/fluttertoast.dart';
@@ -175,33 +173,35 @@ export 'src/dropdown_search/properties/modal_bottom_sheet_props.dart';
 export 'src/dropdown_search/properties/popup_props.dart';
 export 'src/dropdown_search/properties/text_field_props.dart';
 
-export 'package:itq_utils/src/chat_ui/chat_l10n.dart';
-export 'package:itq_utils/src/chat_ui/chat_theme.dart';
-export 'package:itq_utils/src/chat_ui/models/bubble_rtl_alignment.dart';
-export 'package:itq_utils/src/chat_ui/models/emoji_enlargement_behavior.dart';
-export 'package:itq_utils/src/chat_ui/models/input_clear_mode.dart';
-export 'package:itq_utils/src/chat_ui/models/pattern_style.dart';
-export 'package:itq_utils/src/chat_ui/models/send_button_visibility_mode.dart';
-export 'package:itq_utils/src/chat_ui/models/typing_indicator_mode.dart';
-export 'package:itq_utils/src/chat_ui/util.dart'
+export 'src/chat_ui/chat_l10n.dart';
+export 'src/chat_ui/chat_theme.dart';
+export 'src/chat_ui/models/bubble_rtl_alignment.dart';
+export 'src/chat_ui/models/emoji_enlargement_behavior.dart';
+export 'src/chat_ui/models/input_clear_mode.dart';
+export 'src/chat_ui/models/pattern_style.dart';
+export 'src/chat_ui/models/send_button_visibility_mode.dart';
+export 'src/chat_ui/models/typing_indicator_mode.dart';
+export 'src/chat_ui/util.dart'
     show formatBytes, isConsistsOfEmojis;
-export 'package:itq_utils/src/chat_ui/widgets/chat.dart';
-export 'package:itq_utils/src/chat_ui/widgets/chat_list.dart';
-export 'package:itq_utils/src/chat_ui/widgets/image_gallery.dart';
-export 'package:itq_utils/src/chat_ui/widgets/input/attachment_button.dart';
-export 'package:itq_utils/src/chat_ui/widgets/input/input.dart';
-export 'package:itq_utils/src/chat_ui/widgets/input/input_text_field_controller.dart';
-export 'package:itq_utils/src/chat_ui/widgets/input/send_button.dart';
-export 'package:itq_utils/src/chat_ui/widgets/message/file_message.dart';
-export 'package:itq_utils/src/chat_ui/widgets/message/image_message.dart';
-export 'package:itq_utils/src/chat_ui/widgets/message/message.dart';
-export 'package:itq_utils/src/chat_ui/widgets/message/message_status.dart';
-export 'package:itq_utils/src/chat_ui/widgets/message/system_message.dart';
-export 'package:itq_utils/src/chat_ui/widgets/message/text_message.dart';
-export 'package:itq_utils/src/chat_ui/widgets/message/user_avatar.dart';
-export 'package:itq_utils/src/chat_ui/widgets/message/user_name.dart';
-export 'package:itq_utils/src/chat_ui/widgets/typing_indicator.dart';
-export 'package:itq_utils/src/chat_ui/widgets/unread_header.dart';
+export 'src/chat_ui/widgets/chat.dart';
+export 'src/chat_ui/widgets/chat_list.dart';
+export 'src/chat_ui/widgets/image_gallery.dart';
+export 'src/chat_ui/widgets/input/attachment_button.dart';
+export 'src/chat_ui/widgets/input/input.dart';
+export 'src/chat_ui/widgets/input/input_text_field_controller.dart';
+export 'src/chat_ui/widgets/input/send_button.dart';
+export 'src/chat_ui/widgets/message/file_message.dart';
+export 'src/chat_ui/widgets/message/image_message.dart';
+export 'src/chat_ui/widgets/message/message.dart';
+export 'src/chat_ui/widgets/message/message_status.dart';
+export 'src/chat_ui/widgets/message/system_message.dart';
+export 'src/chat_ui/widgets/message/text_message.dart';
+export 'src/chat_ui/widgets/message/user_avatar.dart';
+export 'src/chat_ui/widgets/message/user_name.dart';
+export 'src/chat_ui/widgets/typing_indicator.dart';
+export 'src/chat_ui/widgets/unread_header.dart';
+
+export 'src/datatable/generic_datatable.dart';
 
 
 //region Global variables - This variables can be changed.

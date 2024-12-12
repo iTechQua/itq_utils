@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:itq_utils/itq_utils.dart';
 
 // SnapHelperWidget makes easy implementation for future or stream builder
@@ -33,7 +32,7 @@ class SnapHelperWidget<T> extends StatelessWidget {
         if (!useConnectionStateForLoader) {
           if (snap.hasData) {
             if (snap.data != null) {
-              return onSuccess(snap.data!);
+              return onSuccess(snap.data as T);
             } else {
               return snapWidgetHelper(
                 snap,
@@ -60,7 +59,7 @@ class SnapHelperWidget<T> extends StatelessWidget {
             case ConnectionState.done:
               if (snap.hasData) {
                 if (snap.data != null) {
-                  return onSuccess(snap.data!);
+                  return onSuccess(snap.data as T);
                 } else {
                   return snapWidgetHelper(
                     snap,

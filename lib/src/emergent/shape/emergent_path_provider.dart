@@ -1,7 +1,7 @@
 import 'package:itq_utils/itq_utils.dart';
 
 abstract class EmergentPathProvider extends CustomClipper<Path> {
-  const EmergentPathProvider({Listenable? reclip}) : super(reclip: reclip);
+  const EmergentPathProvider({super.reclip});
 
   @override
   Path getClip(Size size) {

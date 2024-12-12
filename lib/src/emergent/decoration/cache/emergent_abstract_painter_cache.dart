@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
 import 'package:itq_utils/itq_utils.dart';
 
 abstract class AbstractEmergentItqPainterCache {

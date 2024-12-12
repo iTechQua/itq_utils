@@ -10,11 +10,11 @@ class EmergentThemeInherited extends InheritedWidget {
   final ValueChanged<ThemeWrapper> onChanged;
 
   const EmergentThemeInherited(
-      {Key? key,
+      {super.key,
       required this.itqChild,
       required this.value,
       required this.onChanged})
-      : super(key: key, child: itqChild);
+      : super(child: itqChild);
 
   @override
   bool updateShouldNotify(EmergentThemeInherited oldWidget) =>

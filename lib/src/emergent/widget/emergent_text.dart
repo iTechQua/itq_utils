@@ -147,13 +147,13 @@ class EmergentText extends StatelessWidget {
 
   const EmergentText(
     this.text, {
-    Key? key,
+    super.key,
     this.duration = Emergent.defaultDuration,
     this.curve = Emergent.defaultCurve,
     this.style,
     this.textAlign = TextAlign.center,
     this.textStyle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -184,14 +184,13 @@ class _EmergentText extends material.StatefulWidget {
   final TextAlign textAlign;
 
   const _EmergentText({
-    Key? key,
     required this.duration,
     required this.curve,
     required this.textAlign,
     required this.style,
     required this.textStyle,
     required this.text,
-  }) : super(key: key);
+  });
 
   @override
   __EmergentTextState createState() => __EmergentTextState();

@@ -56,7 +56,7 @@ class EmergentButton extends StatefulWidget {
   final String? tooltip;
 
   const EmergentButton({
-    Key? key,
+    super.key,
     this.padding,
     this.margin = EdgeInsets.zero,
     this.child,
@@ -70,7 +70,7 @@ class EmergentButton extends StatefulWidget {
     this.minDistance = 0,
     this.style,
     this.provideHapticFeedback = true,
-  }) : super(key: key);
+  });
 
   bool get isEnabled => onPressed != null;
 

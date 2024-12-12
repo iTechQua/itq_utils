@@ -123,14 +123,14 @@ class EmergentSwitch extends StatelessWidget {
 
   const EmergentSwitch({
     this.style = const EmergentSwitchStyle(),
-    Key? key,
+    super.key,
     this.curve = Emergent.defaultCurve,
     this.duration = const Duration(milliseconds: 200),
     this.value = false,
     this.onChanged,
     this.height = 40,
     this.isEnabled = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +238,7 @@ class AnimatedThumb extends StatelessWidget {
   final LightSource lightSource;
 
   const AnimatedThumb({
-    Key? key,
+    super.key,
     this.thumbColor,
     required this.alignment,
     required this.duration,
@@ -248,7 +248,7 @@ class AnimatedThumb extends StatelessWidget {
     this.border = const EmergentBorder.none(),
     this.lightSource = LightSource.topLeft,
     this.disableDepth = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

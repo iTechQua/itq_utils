@@ -37,7 +37,7 @@ class EmergentApp extends StatelessWidget {
   final bool debugShowMaterialGrid;
 
   const EmergentApp({
-    Key? key,
+    super.key,
     this.title = '',
     this.color,
     this.initialRoute,
@@ -70,7 +70,7 @@ class EmergentApp extends StatelessWidget {
     this.debugShowMaterialGrid = false,
     this.shortcuts,
     this.actions,
-  }) : super(key: key);
+  });
 
   ThemeData _getMaterialTheme(EmergentThemeData theme) {
     final color = theme.accentColor;

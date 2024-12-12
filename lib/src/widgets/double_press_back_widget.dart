@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:itq_utils/itq_utils.dart';
 
 /// A widget that handles double press back navigation.

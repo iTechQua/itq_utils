@@ -1,3 +1,5 @@
+## 2.0.3
+- Added generic datatable with export functionality
 ## 2.0.2
 - iOS error fixed
 ## 2.0.1

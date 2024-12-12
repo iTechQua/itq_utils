@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:itq_utils/itq_utils.dart';
 
 /// TimerWidget - Use this widget if you want to do something every X seconds or any duration.

@@ -151,7 +151,7 @@ class EmergentToggle extends StatelessWidget {
 
   const EmergentToggle({
     this.style = const EmergentToggleStyle(),
-    Key? key,
+    super.key,
     required this.children,
     required this.thumb,
     this.padding = const EdgeInsets.all(2),
@@ -165,7 +165,7 @@ class EmergentToggle extends StatelessWidget {
     this.width,
     this.isEnabled = true,
     this.displayForegroundOnlyIfSelected = true,
-  }) : super(key: key);
+  });
 
   Widget _buildStack(BuildContext context) {
     return Stack(

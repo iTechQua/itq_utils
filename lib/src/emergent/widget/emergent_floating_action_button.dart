@@ -18,13 +18,13 @@ class EmergentFloatingActionButton extends StatelessWidget {
   final EmergentStyle? style;
 
   const EmergentFloatingActionButton({
-    Key? key,
+    super.key,
     this.mini = false,
     this.style,
     this.tooltip,
     @required this.child,
     @required this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

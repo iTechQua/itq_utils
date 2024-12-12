@@ -80,7 +80,7 @@ class EmergentAppBar extends StatefulWidget implements PreferredSizeWidget {
   final double padding;
 
   const EmergentAppBar({
-    Key? key,
+    super.key,
     this.title,
     this.buttonPadding,
     this.buttonStyle,
@@ -94,8 +94,7 @@ class EmergentAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.titleSpacing = NavigationToolbar.kMiddleSpacing,
     this.actionSpacing = defaultSpacing,
     this.padding = 16,
-  })  : preferredSize = const Size.fromHeight(toolbarHeight),
-        super(key: key);
+  })  : preferredSize = const Size.fromHeight(toolbarHeight);
 
   @override
   EmergentAppBarState createState() => EmergentAppBarState();

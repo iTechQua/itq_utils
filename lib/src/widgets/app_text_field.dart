@@ -156,8 +156,8 @@ class AppTextField extends StatefulWidget {
     this.shortReplyChatGPT = false,
     this.testWithoutKeyChatGPT = false,
     this.obscureText = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _AppTextFieldState createState() => _AppTextFieldState();

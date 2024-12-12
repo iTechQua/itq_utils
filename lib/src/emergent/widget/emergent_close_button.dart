@@ -7,11 +7,11 @@ class EmergentCloseButton extends StatelessWidget {
   final EdgeInsets? padding;
 
   const EmergentCloseButton({
-    Key? key,
+    super.key,
     this.onPressed,
     this.style,
     this.padding,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -110,7 +110,7 @@ class EmergentIndicator extends StatefulWidget {
   final Curve curve;
 
   const EmergentIndicator({
-    Key? key,
+    super.key,
     this.percent = 0.5,
     this.orientation = EmergentIndicatorOrientation.vertical,
     this.height = double.maxFinite,
@@ -119,7 +119,7 @@ class EmergentIndicator extends StatefulWidget {
     this.style = const IndicatorStyle(),
     this.duration = const Duration(milliseconds: 300),
     this.curve = Curves.easeOutCubic,
-  }) : super(key: key);
+  });
 
   @override
   createState() => _EmergentIndicatorState();

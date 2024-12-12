@@ -17,8 +17,8 @@ class LanguageListWidget extends StatefulWidget {
     this.onLanguageChange,
     this.scrollPhysics,
     this.trailing,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   LanguageListWidgetState createState() => LanguageListWidgetState();
@@ -40,8 +40,9 @@ class LanguageListWidgetState extends State<LanguageListWidget> {
     if (mounted) super.setState(fn);
   }
 
+  @override
   Widget build(BuildContext context) {
-    Widget _buildImageWidget(String imagePath) {
+    Widget buildImageWidget(String imagePath) {
       if (imagePath.startsWith('http')) {
         return Image.network(imagePath, width: 24);
       } else {
@@ -59,7 +60,7 @@ class LanguageListWidgetState extends State<LanguageListWidget> {
               title: data.name.validate(),
               subTitle: data.subTitle,
               leading:
-                  (data.flag != null) ? _buildImageWidget(data.flag!) : null,
+                  (data.flag != null) ? buildImageWidget(data.flag!) : null,
               trailing: Container(
                 child: widget.trailing ??
                     Container(
@@ -102,7 +103,7 @@ class LanguageListWidgetState extends State<LanguageListWidget> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (data.flag != null) _buildImageWidget(data.flag!),
+                if (data.flag != null) buildImageWidget(data.flag!),
                 4.width,
                 Text(data.name.validate(), style: primaryTextStyle()),
               ],

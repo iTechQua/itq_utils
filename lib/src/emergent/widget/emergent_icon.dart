@@ -10,12 +10,12 @@ class EmergentIcon extends StatelessWidget {
 
   const EmergentIcon(
     this.icon, {
-    Key? key,
+    super.key,
     this.duration = Emergent.defaultDuration,
     this.curve = Emergent.defaultCurve,
     this.style,
     this.size = 20,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

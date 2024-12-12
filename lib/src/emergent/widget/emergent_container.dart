@@ -53,7 +53,7 @@ class Emergent extends StatelessWidget {
       drawSurfaceAboveChild; //if true => boxDecoration & foreground decoration, else => boxDecoration does all the work
 
   const Emergent({
-    Key? key,
+    super.key,
     this.child,
     this.duration = Emergent.defaultDuration,
     this.curve = Emergent.defaultCurve,
@@ -62,7 +62,7 @@ class Emergent extends StatelessWidget {
     this.margin = const EdgeInsets.all(0),
     this.padding = const EdgeInsets.all(0),
     this.drawSurfaceAboveChild = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +95,6 @@ class _EmergentContainer extends StatelessWidget {
   final EdgeInsets padding;
 
   const _EmergentContainer({
-    Key? key,
     this.child,
     this.textStyle,
     required this.padding,
@@ -104,7 +103,7 @@ class _EmergentContainer extends StatelessWidget {
     required this.curve,
     required this.style,
     required this.drawSurfaceAboveChild,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

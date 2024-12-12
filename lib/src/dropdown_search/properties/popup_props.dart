@@ -1,5 +1,4 @@
 import 'package:itq_utils/itq_utils.dart';
-import 'package:itq_utils/src/dropdown_search/dropdown_search_form_field.dart';
 import 'package:itq_utils/src/dropdown_search/properties/scrollbar_props.dart';
 
 class PopupProps<T> {
