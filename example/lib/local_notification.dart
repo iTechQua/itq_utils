@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:itq_utils/itq_utils.dart';
 
-
 class NotificationHomePage extends StatefulWidget {
   const NotificationHomePage({Key? key}) : super(key: key);
 
@@ -12,36 +11,88 @@ class NotificationHomePage extends StatefulWidget {
 }
 
 class _NotificationHomePageState extends State<NotificationHomePage> {
-  final NotificationService _notificationService = NotificationService();
+  late NotificationService _notificationService;
+  // Create a custom notification configuration (optional)
+  final NotificationConfig _customConfig = NotificationConfig(
+    androidAppIcon: 'app_icon', // Custom app icon
+    assetAppIcon: 'icons/app_icon.png', // Custom asset app icon
+    androidChannelId: 'my_app_channel',
+    androidChannelName: 'My App Notifications',
+    androidChannelDescription: 'Notifications for my awesome app',
+    notificationSoundResource: 'notification_sound', // Custom sound
+  );
 
   @override
   void initState() {
     super.initState();
-    _notificationService.initialize(
-        onNotificationTap: (NotificationResponse response) {
-          switch (response.notificationResponseType) {
-            case NotificationResponseType.selectedNotification:
-              if (kDebugMode) {
-                print('Notification tapped: ${response.payload}');
-              }
-              break;
-            case NotificationResponseType.selectedNotificationAction:
-              if (kDebugMode) {
-                print('Notification action tapped: ${response.actionId}');
-              }
-              break;
-          }
-          if (response.payload != null) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NotificationDetailsPage(
-                  payload: response.payload ?? "No payload",
-                ),
-              ),
-            );
-          }
-        }
+
+    // Initialize notification service with custom config and tap handler
+    _notificationService = NotificationService(config: _customConfig)
+      ..initialize(
+        onNotificationTap: _handleNotificationTap,
+      );
+  }
+
+  // Handle notification tap
+  void _handleNotificationTap(NotificationResponse response) {
+    if (kDebugMode) {
+      print('Notification tapped');
+      print('Payload: ${response.payload}');
+      print('Action ID: ${response.actionId}');
+    }
+
+    // Example of navigation or action based on notification
+    if (response.payload != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NotificationDetailsPage(
+            payload: response.payload!,
+          ),
+        ),
+      );
+    }
+  }
+
+  // Example of a notification with Android actions
+  Future<void> showNotificationWithActions() async {
+    // Create a notification config with Android actions
+    final config = NotificationConfig(
+      androidActionCategories: [
+        const NotificationCategory(
+          identifier: 'custom_android_category',
+          actions: [
+            NotificationAction(
+                id: 'custom_action_1',
+                title: 'Custom Action 1',
+                iconPath: 'icons/coworker.png'
+            ),
+            NotificationAction(
+                id: 'custom_action_2',
+                title: 'Custom Action 2',
+                iconPath: 'icons/coworker.png'
+            ),
+          ],
+        ),
+      ],
+    );
+
+    // Initialize the NotificationService with this config
+    final notificationService = NotificationService(config: config);
+
+    // Explicitly process actions
+    await notificationService.initialize();
+
+    // Show the notification with actions
+    notificationService.showNotification(
+      title: 'Interactive Notification',
+      body: 'This notification has multiple actions',
+      // Optional: Add extra customization
+      color: Colors.blue,
+      enableLights: true,
+      ledColor: Colors.green,
+      ledOnMs: 1000, // LED on duration in milliseconds
+      ledOffMs: 500, // LED off duration in milliseconds
     );
   }
 
@@ -58,7 +109,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                       title: 'Instant Notification',
                       body: 'This is an instant notification.',
                       payload: 'meeting_id_12345'
@@ -69,7 +120,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ElevatedButton(
                 onPressed: () {
                   final scheduledTime = DateTime.now().add(const Duration(seconds: 10));
-                  _notificationService.scheduleNotification(
+                  _notificationService.showNotification(
                       title: 'Scheduled Notification',
                       body: 'This notification is scheduled 10 seconds later.',
                       scheduledTime: scheduledTime,
@@ -80,7 +131,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Notification with Sound',
                     body: 'This notification has sound.',
                   );
@@ -89,7 +140,13 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  showNotificationWithActions();
+                },
+                child: const Text('Show Notification with Action'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _notificationService.showNotification(
                     title: 'Notification without Sound',
                     body: 'This notification is silent.',
                     withSound: false,
@@ -99,7 +156,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Notification with Image',
                     body: 'This notification displays an image.',
                     imagePath: 'https://img.freepik.com/premium-vector/abstract-colorful-bird-logo-design_650075-1526.jpg',
@@ -110,7 +167,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ElevatedButton(
                 onPressed: () {
                   final scheduledTime = DateTime.now().add(const Duration(minutes: 1));
-                  _notificationService.scheduleNotification(
+                  _notificationService.showNotification(
                     title: 'Scheduled Notification with Sound',
                     body: 'This notification is scheduled with sound.',
                     scheduledTime: scheduledTime,
@@ -121,7 +178,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ElevatedButton(
                 onPressed: () {
                   final scheduledTime = DateTime.now().add(const Duration(seconds: 20));
-                  _notificationService.scheduleNotification(
+                  _notificationService.showNotification(
                     title: 'Scheduled Notification without Sound',
                     body: 'This notification is scheduled without sound.',
                     scheduledTime: scheduledTime,
@@ -133,7 +190,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ElevatedButton(
                 onPressed: () {
                   final scheduledTime = DateTime.now().add(const Duration(seconds: 30));
-                  _notificationService.scheduleNotification(
+                  _notificationService.showNotification(
                     title: 'Scheduled Notification with Image',
                     body: 'This notification is scheduled with an image.',
                     scheduledTime: scheduledTime,
@@ -144,7 +201,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Immediate Notification with Sound and Image',
                     body: 'This notification has sound and displays an image.',
                     imagePath: 'https://static.vecteezy.com/system/resources/thumbnails/047/656/219/small_2x/abstract-logo-design-for-any-corporate-brand-business-company-vector.jpg',
@@ -155,7 +212,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ElevatedButton(
                 onPressed: () {
                   final scheduledTime = DateTime.now().add(const Duration(seconds: 45));
-                  _notificationService.scheduleNotification(
+                  _notificationService.showNotification(
                     title: 'Scheduled Full Feature Notification',
                     body: 'Scheduled notification with sound and image.',
                     scheduledTime: scheduledTime,
@@ -166,7 +223,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Quick Alert',
                     body: 'This is a quick alert notification.',
                   );
@@ -175,7 +232,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Low Priority Notification',
                     body: 'This notification is of low priority.',
                   );
@@ -185,7 +242,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ElevatedButton(
                 onPressed: () {
                   final scheduledTime = DateTime.now().add(const Duration(seconds: 15));
-                  _notificationService.scheduleNotification(
+                  _notificationService.showNotification(
                     title: 'Reminder',
                     body: 'This is a scheduled reminder.',
                     scheduledTime: scheduledTime,
@@ -195,7 +252,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Task Completed',
                     body: 'Your task has been completed successfully.',
                   );
@@ -204,7 +261,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Meeting Alert',
                     body: 'You have a meeting scheduled at 3 PM.',
                   );
@@ -213,7 +270,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Weather Update',
                     body: 'Rain is expected tomorrow.',
                   );
@@ -222,7 +279,7 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _notificationService.showInstantNotification(
+                  _notificationService.showNotification(
                     title: 'Promotion Alert',
                     body: 'Check out our latest discounts!',
                   );

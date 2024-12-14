@@ -877,38 +877,91 @@ Duration JwtDecoder.getRemainingTime(token);
 ## Local notification services
 ```dart
 /// Pass your audio file 'notification_music.mp3' in res/raw folder and 'app_icon.png' in res/drawable folder inside android/app/src/main then implement below code where you need local notification
-final NotificationService _notificationService = NotificationService();
+late NotificationService _notificationService;
+// Create a custom notification configuration (optional)
+final NotificationConfig _customConfig = NotificationConfig(
+  androidAppIcon: 'app_icon', // Custom app icon
+  assetAppIcon: 'icons/app_icon.png', // Custom asset app icon
+  androidChannelId: 'my_app_channel',
+  androidChannelName: 'My App Notifications',
+  androidChannelDescription: 'Notifications for my awesome app',
+  notificationSoundResource: 'notification_sound', // Custom sound
+);
 
 @override
 void initState() {
   super.initState();
-  _notificationService.initialize(
-    onNotificationTap: (NotificationResponse response) {
-      switch (response.notificationResponseType) {
-        case NotificationResponseType.selectedNotification:
-          if (kDebugMode) {
-            print('Notification tapped: ${response.payload}');
-          }
-          break;
-        case NotificationResponseType.selectedNotificationAction:
-          if (kDebugMode) {
-            print('Notification action tapped: ${response.actionId}');
-          }
-          break;
-      }
-      if (response.payload != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NotificationDetailsPage(
-              payload: response.payload ?? "No payload",
-            ),
+
+  // Initialize notification service with custom config and tap handler
+  _notificationService = NotificationService(config: _customConfig)
+    ..initialize(
+      onNotificationTap: _handleNotificationTap,
+    );
+}
+
+// Handle notification tap
+void _handleNotificationTap(NotificationResponse response) {
+  if (kDebugMode) {
+    print('Notification tapped');
+    print('Payload: ${response.payload}');
+    print('Action ID: ${response.actionId}');
+  }
+
+  // Example of navigation or action based on notification
+  if (response.payload != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NotificationDetailsPage(
+          payload: response.payload!,
+        ),
+      ),
+    );
+  }
+}
+
+// Example of a notification with Android actions
+Future<void> showNotificationWithActions() async {
+  // Create a notification config with Android actions
+  final config = NotificationConfig(
+    androidActionCategories: [
+      const NotificationCategory(
+        identifier: 'custom_android_category',
+        actions: [
+          NotificationAction(
+                  id: 'custom_action_1',
+                  title: 'Custom Action 1',
+                  iconPath: 'icons/coworker.png'
           ),
-        );
-      }
-    }
+          NotificationAction(
+                  id: 'custom_action_2',
+                  title: 'Custom Action 2',
+                  iconPath: 'icons/coworker.png'
+          ),
+        ],
+      ),
+    ],
+  );
+
+  // Initialize the NotificationService with this config
+  final notificationService = NotificationService(config: config);
+
+  // Explicitly process actions
+  await notificationService.initialize();
+
+  // Show the notification with actions
+  notificationService.showNotification(
+    title: 'Interactive Notification',
+    body: 'This notification has multiple actions',
+    // Optional: Add extra customization
+    color: Colors.blue,
+    enableLights: true,
+    ledColor: Colors.green,
+    ledOnMs: 1000, // LED on duration in milliseconds
+    ledOffMs: 500, // LED off duration in milliseconds
   );
 }
+
 ```
 
 ## Show Dialogs

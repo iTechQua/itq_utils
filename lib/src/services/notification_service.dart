@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show Color, rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -8,19 +8,253 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:path/path.dart' as path;
+
+// Unified Notification Action class
+class NotificationAction {
+  final String id;
+  final String title;
+  final NotificationActionType type;
+  final Map<String, dynamic>? options;
+  final String? iconPath;
+
+  const NotificationAction({
+    required this.id,
+    required this.title,
+    this.type = NotificationActionType.plain,
+    this.options,
+    this.iconPath,
+  });
+
+  // Convert to Android Notification Action
+  Future<AndroidNotificationAction?> toAndroidNotificationAction() async {
+    // Process icon if provided
+    String? processedIconPath;
+    if (iconPath != null) {
+      processedIconPath = await _processActionIcon(iconPath!);
+    }
+
+    return AndroidNotificationAction(
+      id,
+      title,
+      icon: processedIconPath != null ? FilePathAndroidBitmap(processedIconPath) : null,
+      contextual: false,
+      showsUserInterface: true,
+    );
+  }
+
+  // Convert to Darwin (iOS/macOS) Notification Action
+  DarwinNotificationAction toDarwinNotificationAction() {
+    switch (type) {
+      case NotificationActionType.text:
+        return DarwinNotificationAction.text(
+          id,
+          title,
+          buttonTitle: options?['buttonTitle'] ?? 'Send',
+          placeholder: options?['placeholder'] ?? '',
+        );
+      case NotificationActionType.plain:
+        final actionOptions = <DarwinNotificationActionOption>{};
+
+        // Handle destructive option
+        if (options?['destructive'] == true) {
+          actionOptions.add(DarwinNotificationActionOption.destructive);
+        }
+
+        // Handle foreground option
+        if (options?['foreground'] == true) {
+          actionOptions.add(DarwinNotificationActionOption.foreground);
+        }
+
+        return DarwinNotificationAction.plain(
+          id,
+          title,
+          options: actionOptions,
+        );
+    }
+  }
+
+  // Utility method to process action icon (moved from previous implementation)
+  Future<String?> _processActionIcon(String iconPath) async {
+    try {
+      // Check if it's a network image
+      if (iconPath.startsWith('http://') || iconPath.startsWith('https://')) {
+        final response = await http.get(Uri.parse(iconPath));
+        final documentDirectory = await getTemporaryDirectory();
+        final file = File('${documentDirectory.path}/temp_action_icon.png');
+        await file.writeAsBytes(response.bodyBytes);
+        return file.path;
+      }
+
+      // Check if it's an asset image
+      if (path.extension(iconPath) != '') {
+        final byteData = await rootBundle.load(iconPath);
+        final documentDirectory = await getTemporaryDirectory();
+        final file = File('${documentDirectory.path}/temp_action_icon.png');
+        await file.writeAsBytes(byteData.buffer.asUint8List());
+        return file.path;
+      }
+
+      // Assume it's a local file path
+      return iconPath;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error processing action icon: $e');
+      }
+      return null;
+    }
+  }
+}
+
+// Enum remains the same
+enum NotificationActionType {
+  plain,
+  text,
+}
+
+// Notification Category class to group actions
+class NotificationCategory {
+  final String identifier;
+  final List<NotificationAction> actions;
+
+  const NotificationCategory({
+    required this.identifier,
+    required this.actions,
+  });
+
+  // Convert to Android Notification Category (if needed)
+  Future<List<AndroidNotificationAction>> toAndroidNotificationActions() async {
+    final androidActions = <AndroidNotificationAction>[];
+    for (var action in actions) {
+      final androidAction = await action.toAndroidNotificationAction();
+      if (androidAction != null) {
+        androidActions.add(androidAction);
+      }
+    }
+    return androidActions;
+  }
+
+  // Convert to Darwin Notification Category
+  DarwinNotificationCategory toDarwinNotificationCategory() {
+    return DarwinNotificationCategory(
+      identifier,
+      actions: actions.map((action) => action.toDarwinNotificationAction()).toList(),
+    );
+  }
+}
+
+// Updated NotificationConfig to include Android categories
+class NotificationConfig {
+  final String androidAppIcon;
+  final String assetAppIcon;
+  final String androidChannelId;
+  final String androidChannelName;
+  final String defaultActionName;
+  final String androidChannelDescription;
+  final String notificationSoundResource;
+  final List<NotificationCategory> darwinActionCategories;
+  final List<NotificationCategory> androidActionCategories;
+  final List<AndroidNotificationAction>? androidActions;
+
+  NotificationConfig({
+    this.androidAppIcon = 'app_icon',
+    this.assetAppIcon = 'icons/app_icon.png',
+    this.androidChannelId = 'default_channel_id',
+    this.androidChannelName = 'Default Channel',
+    this.defaultActionName = 'Open Notification',
+    this.androidChannelDescription = 'General notifications',
+    this.notificationSoundResource = 'notification_sound',
+    List<NotificationCategory>? darwinActionCategories,
+    List<NotificationCategory>? androidActionCategories,
+    this.androidActions,
+  })  : darwinActionCategories = darwinActionCategories ?? _defaultDarwinCategories,
+        androidActionCategories = androidActionCategories ?? _defaultAndroidCategories;
+
+  static final List<NotificationCategory> _defaultDarwinCategories = [
+    const NotificationCategory(
+      identifier: 'text_category',
+      actions: [
+        NotificationAction(
+          id: 'text_1',
+          title: 'Reply',
+          type: NotificationActionType.text,
+          options: {
+            'buttonTitle': 'Send',
+            'placeholder': 'Type a message',
+          },
+        ),
+      ],
+    ),
+    const NotificationCategory(
+      identifier: 'plain_category',
+      actions: [
+        NotificationAction(
+          id: 'id_1',
+          title: 'Action 1',
+          type: NotificationActionType.plain,
+        ),
+        NotificationAction(
+          id: 'id_2',
+          title: 'Action 2',
+          type: NotificationActionType.plain,
+          options: {
+            'destructive': true,
+          },
+        ),
+      ],
+    ),
+  ];
+
+  // Added default Android categories
+  static final List<NotificationCategory> _defaultAndroidCategories = [
+    const NotificationCategory(
+      identifier: 'default_android_category',
+      actions: [
+        NotificationAction(
+          id: 'android_action_1',
+          title: 'Android Action 1',
+          type: NotificationActionType.plain,
+        ),
+        NotificationAction(
+          id: 'android_action_2',
+          title: 'Android Action 2',
+          type: NotificationActionType.plain,
+        ),
+      ],
+    ),
+  ];
+}
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  late NotificationConfig _config;
 
   // Notification tap callback
   void Function(NotificationResponse)? _onNotificationTapCallback;
 
   // Singleton pattern
   static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
+
+  factory NotificationService({NotificationConfig? config}) {
+    if (config != null) {
+      _instance._updateConfig(config);
+    }
+    return _instance;
+  }
+
   NotificationService._internal() {
+    // Initialize with default config if not set
+    _config = NotificationConfig();
     initialize();
   }
+
+  // Update configuration
+  void _updateConfig(NotificationConfig newConfig) {
+    _config = newConfig;
+  }
+
+  // Getter for config
+  NotificationConfig get config => _config;
 
   // Notification permission status
   bool _notificationPermissionGranted = false;
@@ -31,6 +265,8 @@ class NotificationService {
   // Initialize notification service
   Future<void> initialize({
     void Function(NotificationResponse)? onNotificationTap,
+    List<NotificationCategory>? androidCategories,
+    List<NotificationCategory>? darwinCategories,
   }) async {
     try {
       // Store the custom notification tap callback
@@ -42,36 +278,22 @@ class NotificationService {
       await _requestNotificationPermissions();
 
       // Android initialization settings
-      const AndroidInitializationSettings androidSettings =
-      AndroidInitializationSettings('app_icon');
+      final AndroidInitializationSettings androidSettings =
+      AndroidInitializationSettings(config.androidAppIcon);
 
-      // iOS/macOS notification categories
-      final List<DarwinNotificationCategory> darwinNotificationCategories = [
-        DarwinNotificationCategory(
-          'text_category',
-          actions: [
-            DarwinNotificationAction.text(
-              'text_1',
-              'Reply',
-              buttonTitle: 'Send',
-              placeholder: 'Type a message',
-            ),
-          ],
-        ),
-        DarwinNotificationCategory(
-          'plain_category',
-          actions: [
-            DarwinNotificationAction.plain('id_1', 'Action 1'),
-            DarwinNotificationAction.plain(
-              'id_2',
-              'Action 2',
-              options: {DarwinNotificationActionOption.destructive},
-            ),
-          ],
-        ),
-      ];
+      // Process Android Actions from config
+      List<AndroidNotificationAction> processedAndroidActions = [];
+      for (var category in config.androidActionCategories) {
+        processedAndroidActions.addAll(await category.toAndroidNotificationActions());
+      }
 
-      // iOS initialization settings
+      // Process Darwin Actions
+      final List<DarwinNotificationCategory> darwinNotificationCategories =
+      config.darwinActionCategories
+          .map((category) => category.toDarwinNotificationCategory())
+          .toList();
+
+      // iOS initialization settings (update to use processed categories)
       final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
         requestAlertPermission: true,
         requestBadgePermission: true,
@@ -79,6 +301,19 @@ class NotificationService {
         notificationCategories: darwinNotificationCategories,
       );
 
+      // Update NotificationConfig to include these new actions
+      _config = NotificationConfig(
+        androidActions: processedAndroidActions,
+        androidAppIcon: config.androidAppIcon,
+        assetAppIcon: config.assetAppIcon,
+        androidChannelId: config.androidChannelId,
+        androidChannelName: config.androidChannelName,
+        defaultActionName: config.defaultActionName,
+        androidChannelDescription: config.androidChannelDescription,
+        notificationSoundResource: config.notificationSoundResource,
+        darwinActionCategories: config.darwinActionCategories,
+        androidActionCategories: config.androidActionCategories,
+      );
       // macOS initialization settings (similar to iOS)
       final DarwinInitializationSettings macOSSettings = DarwinInitializationSettings(
         requestAlertPermission: true,
@@ -89,8 +324,8 @@ class NotificationService {
 
       // Linux initialization settings
       final LinuxInitializationSettings linuxSettings = LinuxInitializationSettings(
-        defaultActionName: 'Open notification',
-        defaultIcon: AssetsLinuxIcon('icons/app_icon.png'),
+        defaultActionName: config.defaultActionName,
+        defaultIcon: AssetsLinuxIcon(config.assetAppIcon),
       );
 
       // Combine initialization settings for all platforms
@@ -193,7 +428,6 @@ class NotificationService {
     }
   }
 
-
   // Background notification handler
   @pragma('vm:entry-point')
   static void _backgroundNotificationHandler(NotificationResponse notificationResponse) {
@@ -219,7 +453,7 @@ class NotificationService {
       }
 
       // Check if it's an asset image
-      if (imagePath.startsWith('assets/')) {
+      if (path.extension(imagePath) != '') {
         // Load asset image
         final byteData = await rootBundle.load(imagePath);
         final documentDirectory = await getTemporaryDirectory();
@@ -238,97 +472,27 @@ class NotificationService {
     }
   }
 
-  // Show an instant notification
-  Future<void> showInstantNotification({
+// Unified notification method supporting both instant and scheduled notifications
+  Future<void> showNotification({
     required String title,
     required String body,
     String? payload,
     String? imagePath,
     bool withSound = true,
-    String? soundResourceName, // Optional custom sound
-  }) async {
-    // Check if notification permission is granted
-    if (!_notificationPermissionGranted) {
-      await _requestNotificationPermissions();
 
-      // If still not granted, return
-      if (!_notificationPermissionGranted) {
-        if (kDebugMode) {
-          print('Notification permission not granted');
-        }
-        return;
-      }
-    }
-
-    // Process the image path
-    final processedImagePath = await _processNotificationImage(imagePath);
-
-    // Android notification details
-    final androidDetails = AndroidNotificationDetails(
-      'default_channel_id',
-      'Default Channel',
-      channelDescription: 'General notifications',
-      importance: Importance.high,
-      priority: Priority.high,
-      ticker: 'ticker',
-      sound: withSound
-          ? const RawResourceAndroidNotificationSound('notification_sound')
-          : null,
-      playSound: withSound,
-      styleInformation: processedImagePath != null
-          ? BigPictureStyleInformation(FilePathAndroidBitmap(processedImagePath))
-          : null,
-    );
-
-    // iOS/macOS notification details
-    final darwinDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: withSound,
-      attachments: processedImagePath != null
-          ? [DarwinNotificationAttachment(processedImagePath)]
-          : null,
-    );
-
-    // Linux notification details
-    const linuxDetails = LinuxNotificationDetails(
-      urgency: LinuxNotificationUrgency.normal,
-    );
-
-    // Combine notification details
-    final notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: darwinDetails,
-      macOS: darwinDetails,
-      linux: linuxDetails,
-    );
-
-    try {
-      // Show the notification
-      await _notificationsPlugin.show(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        title,
-        body,
-        notificationDetails,
-        payload: payload,
-      );
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error showing notification: $e');
-      }
-    }
-  }
-
-  // Schedule a notification
-  Future<void> scheduleNotification({
-    required String title,
-    required String body,
-    required DateTime scheduledTime,
-    String? payload,
-    String? imagePath,
-    bool withSound = true,
-    AndroidScheduleMode androidScheduleMode = AndroidScheduleMode.exactAllowWhileIdle,
+    // Scheduling parameters
+    DateTime? scheduledTime,
+    AndroidScheduleMode androidScheduleMode = AndroidScheduleMode
+        .exactAllowWhileIdle,
     DateTimeComponents? matchDateTimeComponents,
+
+    // Additional notification customization
+    Color? color,
+    bool enableLights = false,
+    Color? ledColor,
+    int? ledOnMs,
+    int? ledOffMs,
+    Int64List? vibrationPattern,
   }) async {
     // Check if notification permission is granted
     if (!_notificationPermissionGranted) {
@@ -343,8 +507,8 @@ class NotificationService {
       }
     }
 
-    // Check and request exact alarm permissions for Android
-    if (Platform.isAndroid) {
+    // Handle Android exact alarm permission for scheduled notifications
+    if (scheduledTime != null && Platform.isAndroid) {
       try {
         // Check if the app can schedule exact alarms
         if (!await Permission.scheduleExactAlarm.isGranted) {
@@ -356,7 +520,8 @@ class NotificationService {
             androidScheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
 
             if (kDebugMode) {
-              print('Exact alarm permission not granted. Falling back to inexact scheduling.');
+              print(
+                  'Exact alarm permission not granted. Falling back to inexact scheduling.');
             }
           }
         }
@@ -367,26 +532,54 @@ class NotificationService {
         // Fallback to inexact scheduling
         androidScheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
       }
+    } else if (Platform.isIOS) {
+      // Handle iOS notification permissions
+      try {
+        // Check and request notification permission
+        final notificationStatus = await Permission.notification.status;
+
+        if (!notificationStatus.isGranted) {
+          final result = await Permission.notification.request();
+
+          if (result != PermissionStatus.granted) {
+            if (kDebugMode) {
+              print(
+                  'Notification permission not granted. Scheduled notifications might not work.');
+            }
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error checking/requesting notification permission on iOS: $e');
+        }
+      }
     }
 
     // Process the image path
     final processedImagePath = await _processNotificationImage(imagePath);
 
-    // Android notification details
+    // Android notification details now uses config.androidActions from the config
     final androidDetails = AndroidNotificationDetails(
-      'default_channel_id',
-      'Default Channel',
-      channelDescription: 'Scheduled notifications',
+      config.androidChannelId,
+      config.androidChannelName,
+      channelDescription: config.androidChannelDescription,
       importance: Importance.high,
       priority: Priority.high,
       ticker: 'ticker',
-      sound: withSound
-          ? const RawResourceAndroidNotificationSound('notification_sound')
-          : null,
+      sound: withSound ? RawResourceAndroidNotificationSound(config.notificationSoundResource) : null,
       playSound: withSound,
       styleInformation: processedImagePath != null
           ? BigPictureStyleInformation(FilePathAndroidBitmap(processedImagePath))
           : null,
+
+      // Use androidActions from config
+      actions: config.androidActions,
+      color: color,
+      enableLights: enableLights,
+      ledColor: ledColor,
+      ledOnMs: ledOnMs,
+      ledOffMs: ledOffMs,
+      vibrationPattern: vibrationPattern,
     );
 
     // iOS/macOS notification details
@@ -413,27 +606,42 @@ class NotificationService {
     );
 
     try {
-      // Schedule the notification
-      await _notificationsPlugin.zonedSchedule(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        title,
-        body,
-        tz.TZDateTime.from(scheduledTime, tz.local),
-        notificationDetails,
-        uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: androidScheduleMode,
-        payload: payload,
-        matchDateTimeComponents: matchDateTimeComponents,
-      );
+      // Generate a unique notification ID
+      final notificationId = DateTime
+          .now()
+          .millisecondsSinceEpoch ~/ 1000;
+
+      if (scheduledTime == null) {
+        // Show instant notification
+        await _notificationsPlugin.show(
+          notificationId,
+          title,
+          body,
+          notificationDetails,
+          payload: payload,
+        );
+      } else {
+        // Schedule notification
+        await _notificationsPlugin.zonedSchedule(
+          notificationId,
+          title,
+          body,
+          tz.TZDateTime.from(scheduledTime, tz.local),
+          notificationDetails,
+          uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+          androidScheduleMode: androidScheduleMode,
+          payload: payload,
+          matchDateTimeComponents: matchDateTimeComponents,
+        );
+      }
     } catch (e) {
       if (kDebugMode) {
-        print('Error scheduling notification: $e');
+        print('Error showing/scheduling notification: $e');
       }
       rethrow;
     }
   }
-
   // Cancel a specific notification
   Future<void> cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);

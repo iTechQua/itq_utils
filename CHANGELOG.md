@@ -1,3 +1,5 @@
+## 2.0.5
+- Update flutter local notification service
 ## 2.0.4
 - Added flutter local notification service
 ## 2.0.3
