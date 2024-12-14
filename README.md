@@ -101,6 +101,7 @@ return MaterialApp(
 - [JWT Decoder](#jwt-decoder)
 - [Dialog](#show-dialogs)
 - [Custom Dialogs](#custom-dialogs)
+- [Local Notification Service](#local-notification-services)
 
 ## Useful methods or extensions you will ever need
 ```dart
@@ -871,6 +872,43 @@ bool JwtDecoder.isExpired(token);
 DateTime JwtDecoder.getExpirationDate(token);
 Duration JwtDecoder.getTokenTime(token);
 Duration JwtDecoder.getRemainingTime(token);
+```
+
+## Local notification services
+```dart
+/// Pass your audio file 'notification_music.mp3' in res/raw folder and 'app_icon.png' in res/drawable folder inside android/app/src/main then implement below code where you need local notification
+final NotificationService _notificationService = NotificationService();
+
+@override
+void initState() {
+  super.initState();
+  _notificationService.initialize(
+    onNotificationTap: (NotificationResponse response) {
+      switch (response.notificationResponseType) {
+        case NotificationResponseType.selectedNotification:
+          if (kDebugMode) {
+            print('Notification tapped: ${response.payload}');
+          }
+          break;
+        case NotificationResponseType.selectedNotificationAction:
+          if (kDebugMode) {
+            print('Notification action tapped: ${response.actionId}');
+          }
+          break;
+      }
+      if (response.payload != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NotificationDetailsPage(
+              payload: response.payload ?? "No payload",
+            ),
+          ),
+        );
+      }
+    }
+  );
+}
 ```
 
 ## Show Dialogs

@@ -1,6 +1,6 @@
 name: itq_utils
 description: Collection of Widgets and helpful Methods that every developer needs.
-version: 2.0.3
+version: 2.0.4
 #homepage: https://iTechQua.github.io
 repository: https://github.com/iTechQua/itq_utils
 issue_tracker: https://github.com/iTechQua/itq_utils/issues
@@ -56,6 +56,11 @@ dependencies:
   syncfusion_flutter_datagrid: ^27.2.5
   syncfusion_flutter_xlsio: ^27.2.5
   universal_html: ^2.2.4
+
+  flutter_local_notifications: ^18.0.1
+  flutter_timezone: ^4.0.0
+  timezone: ^0.10.0
+  image: ^4.3.0
 
   plugin_platform_interface: ^2.1.8
   web: ^1.1.0

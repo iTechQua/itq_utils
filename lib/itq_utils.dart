@@ -202,6 +202,7 @@ export 'src/chat_ui/widgets/typing_indicator.dart';
 export 'src/chat_ui/widgets/unread_header.dart';
 
 export 'src/datatable/generic_datatable.dart';
+export 'src/services/notification_service.dart';
 
 
 //region Global variables - This variables can be changed.
