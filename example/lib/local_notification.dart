@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:itq_utils/itq_utils.dart';
 
 class NotificationHomePage extends StatefulWidget {
@@ -12,6 +14,9 @@ class NotificationHomePage extends StatefulWidget {
 
 class _NotificationHomePageState extends State<NotificationHomePage> {
   late NotificationService _notificationService;
+  String? _fcmToken;
+  bool _notificationsEnabled = false;
+
   // Create a custom notification configuration (optional)
   final NotificationConfig _customConfig = NotificationConfig(
     androidAppIcon: 'app_icon', // Custom app icon
@@ -26,14 +31,27 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
   void initState() {
     super.initState();
 
-    // Initialize notification service with custom config and tap handler
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    // Initialize notification service with custom config and handlers
     _notificationService = NotificationService(config: _customConfig)
       ..initialize(
         onNotificationTap: _handleNotificationTap,
+        onForegroundMessage: _handleForegroundMessage,
+        onMessageOpenedApp: _handleMessageOpenedApp,
       );
+
+    // Check if notifications are enabled
+    _notificationsEnabled = _notificationService.isNotificationPermissionGranted;
+
+    // Get FCM token
+    _fcmToken = _notificationService.fcmToken;
+    setState(() {});
   }
 
-  // Handle notification tap
+  // Handle local notification tap
   void _handleNotificationTap(NotificationResponse response) {
     if (kDebugMode) {
       print('Notification tapped');
@@ -41,7 +59,6 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
       print('Action ID: ${response.actionId}');
     }
 
-    // Example of navigation or action based on notification
     if (response.payload != null) {
       Navigator.push(
         context,
@@ -52,6 +69,54 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
         ),
       );
     }
+  }
+
+  // Handle FCM foreground message
+  void _handleForegroundMessage(RemoteMessage message) {
+    if (kDebugMode) {
+      print('Received foreground message:');
+      print('Title: ${message.notification?.title}');
+      print('Body: ${message.notification?.body}');
+      print('Data: ${message.data}');
+    }
+  }
+
+  // Handle FCM message when app is opened from notification
+  void _handleMessageOpenedApp(RemoteMessage message) {
+    if (kDebugMode) {
+      print('App opened from notification:');
+      print('Title: ${message.notification?.title}');
+      print('Body: ${message.notification?.body}');
+      print('Data: ${message.data}');
+    }
+
+    // Navigate based on the message data
+    if (message.data['screen'] != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NotificationDetailsPage(
+            payload: message.data.toString(),
+          ),
+        ),
+      );
+    }
+  }
+
+  // Subscribe to FCM topic
+  Future<void> _subscribeToTopic(String topic) async {
+    await _notificationService.subscribeToTopic(topic);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Subscribed to topic: $topic')),
+    );
+  }
+
+  // Unsubscribe from FCM topic
+  Future<void> _unsubscribeFromTopic(String topic) async {
+    await _notificationService.unsubscribeFromTopic(topic);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Unsubscribed from topic: $topic')),
+    );
   }
 
   // Example of a notification with Android actions
@@ -106,7 +171,57 @@ class _NotificationHomePageState extends State<NotificationHomePage> {
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: [  // FCM Token Display
+              if (_fcmToken != null)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'FCM Token: ${_fcmToken!.substring(0, 20)}...',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+
+              // FCM Topic Subscription
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => _subscribeToTopic('news'),
+                      child: const Text('Subscribe to News'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _unsubscribeFromTopic('news'),
+                      child: const Text('Unsubscribe from News'),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Request Permission Button (for iOS)
+              if (Platform.isIOS)
+                ElevatedButton(
+                  onPressed: () async {
+                    final granted = await _notificationService.requestFCMPermission();
+                    setState(() {
+                      _notificationsEnabled = granted;
+                    });
+                  },
+                  child: const Text('Request FCM Permission'),
+                ),
+
+
+              // Delete FCM Token
+              ElevatedButton(
+                onPressed: () async {
+                  await _notificationService.deleteFCMToken();
+                  setState(() {
+                    _fcmToken = null;
+                  });
+                },
+                child: const Text('Delete FCM Token'),
+              ),
               ElevatedButton(
                 onPressed: () {
                   _notificationService.showNotification(

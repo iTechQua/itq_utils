@@ -617,9 +617,9 @@ double getLuminance()
 Size size()
 
 /// return screen width
-double width()
+double screenWidth()
 /// return screen height
-double height()
+double screenHeight()
 
 double pixelRatio()
 
@@ -892,14 +892,27 @@ final NotificationConfig _customConfig = NotificationConfig(
 void initState() {
   super.initState();
 
-  // Initialize notification service with custom config and tap handler
+  _initializeNotifications();
+}
+
+Future<void> _initializeNotifications() async {
+  // Initialize notification service with custom config and handlers
   _notificationService = NotificationService(config: _customConfig)
     ..initialize(
       onNotificationTap: _handleNotificationTap,
+      onForegroundMessage: _handleForegroundMessage,
+      onMessageOpenedApp: _handleMessageOpenedApp,
     );
+
+  // Check if notifications are enabled
+  _notificationsEnabled = _notificationService.isNotificationPermissionGranted;
+
+  // Get FCM token
+  _fcmToken = _notificationService.fcmToken;
+  setState(() {});
 }
 
-// Handle notification tap
+// Handle local notification tap
 void _handleNotificationTap(NotificationResponse response) {
   if (kDebugMode) {
     print('Notification tapped');
@@ -907,7 +920,6 @@ void _handleNotificationTap(NotificationResponse response) {
     print('Action ID: ${response.actionId}');
   }
 
-  // Example of navigation or action based on notification
   if (response.payload != null) {
     Navigator.push(
       context,
@@ -918,6 +930,54 @@ void _handleNotificationTap(NotificationResponse response) {
       ),
     );
   }
+}
+
+// Handle FCM foreground message
+void _handleForegroundMessage(RemoteMessage message) {
+  if (kDebugMode) {
+    print('Received foreground message:');
+    print('Title: ${message.notification?.title}');
+    print('Body: ${message.notification?.body}');
+    print('Data: ${message.data}');
+  }
+}
+
+// Handle FCM message when app is opened from notification
+void _handleMessageOpenedApp(RemoteMessage message) {
+  if (kDebugMode) {
+    print('App opened from notification:');
+    print('Title: ${message.notification?.title}');
+    print('Body: ${message.notification?.body}');
+    print('Data: ${message.data}');
+  }
+
+  // Navigate based on the message data
+  if (message.data['screen'] != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NotificationDetailsPage(
+          payload: message.data.toString(),
+        ),
+      ),
+    );
+  }
+}
+
+// Subscribe to FCM topic
+Future<void> _subscribeToTopic(String topic) async {
+  await _notificationService.subscribeToTopic(topic);
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Subscribed to topic: $topic')),
+  );
+}
+
+// Unsubscribe from FCM topic
+Future<void> _unsubscribeFromTopic(String topic) async {
+  await _notificationService.unsubscribeFromTopic(topic);
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Unsubscribed from topic: $topic')),
+  );
 }
 
 // Example of a notification with Android actions

@@ -8,6 +8,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:path/path.dart' as path;
 
 // Unified Notification Action class
@@ -152,8 +154,8 @@ class NotificationConfig {
   final String defaultActionName;
   final String androidChannelDescription;
   final String notificationSoundResource;
-  final List<NotificationCategory> darwinActionCategories;
-  final List<NotificationCategory> androidActionCategories;
+  final List<NotificationCategory>? darwinActionCategories;
+  final List<NotificationCategory>? androidActionCategories;
   final List<AndroidNotificationAction>? androidActions;
 
   NotificationConfig({
@@ -164,73 +166,30 @@ class NotificationConfig {
     this.defaultActionName = 'Open Notification',
     this.androidChannelDescription = 'General notifications',
     this.notificationSoundResource = 'notification_sound',
-    List<NotificationCategory>? darwinActionCategories,
-    List<NotificationCategory>? androidActionCategories,
+    this.darwinActionCategories,
+    this.androidActionCategories,
     this.androidActions,
-  })  : darwinActionCategories = darwinActionCategories ?? _defaultDarwinCategories,
-        androidActionCategories = androidActionCategories ?? _defaultAndroidCategories;
+  });
 
-  static final List<NotificationCategory> _defaultDarwinCategories = [
-    const NotificationCategory(
-      identifier: 'text_category',
-      actions: [
-        NotificationAction(
-          id: 'text_1',
-          title: 'Reply',
-          type: NotificationActionType.text,
-          options: {
-            'buttonTitle': 'Send',
-            'placeholder': 'Type a message',
-          },
-        ),
-      ],
-    ),
-    const NotificationCategory(
-      identifier: 'plain_category',
-      actions: [
-        NotificationAction(
-          id: 'id_1',
-          title: 'Action 1',
-          type: NotificationActionType.plain,
-        ),
-        NotificationAction(
-          id: 'id_2',
-          title: 'Action 2',
-          type: NotificationActionType.plain,
-          options: {
-            'destructive': true,
-          },
-        ),
-      ],
-    ),
-  ];
-
-  // Added default Android categories
-  static final List<NotificationCategory> _defaultAndroidCategories = [
-    const NotificationCategory(
-      identifier: 'default_android_category',
-      actions: [
-        NotificationAction(
-          id: 'android_action_1',
-          title: 'Android Action 1',
-          type: NotificationActionType.plain,
-        ),
-        NotificationAction(
-          id: 'android_action_2',
-          title: 'Android Action 2',
-          type: NotificationActionType.plain,
-        ),
-      ],
-    ),
-  ];
 }
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   late NotificationConfig _config;
+
+  // Callbacks for Firebase messages
+  void Function(RemoteMessage)? _onForegroundMessage;
+  void Function(RemoteMessage)? _onMessageOpenedApp;
 
   // Notification tap callback
   void Function(NotificationResponse)? _onNotificationTapCallback;
+
+  // FCM Token
+  String? _fcmToken;
+
+  // Getter for FCM token
+  String? get fcmToken => _fcmToken;
 
   // Singleton pattern
   static final NotificationService _instance = NotificationService._internal();
@@ -265,12 +224,27 @@ class NotificationService {
   // Initialize notification service
   Future<void> initialize({
     void Function(NotificationResponse)? onNotificationTap,
+    void Function(RemoteMessage)? onForegroundMessage,
+    void Function(RemoteMessage)? onMessageOpenedApp,
     List<NotificationCategory>? androidCategories,
     List<NotificationCategory>? darwinCategories,
   }) async {
     try {
-      // Store the custom notification tap callback
+      // Initialize Firebase if not already initialized
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp();
+      }
+
+      // Store callbacks
       _onNotificationTapCallback = onNotificationTap;
+      _onForegroundMessage = onForegroundMessage;
+      _onMessageOpenedApp = onMessageOpenedApp;
+
+      // Configure FCM handlers
+      await _configureFCM();
+
+      // Request FCM token
+      await _getFCMToken();
       // Ensure the app is initialized for notifications
       await _configureLocalTimeZone();
 
@@ -283,14 +257,13 @@ class NotificationService {
 
       // Process Android Actions from config
       List<AndroidNotificationAction> processedAndroidActions = [];
-      for (var category in config.androidActionCategories) {
+      for (var category in config.androidActionCategories!) {
         processedAndroidActions.addAll(await category.toAndroidNotificationActions());
       }
 
       // Process Darwin Actions
       final List<DarwinNotificationCategory> darwinNotificationCategories =
-      config.darwinActionCategories
-          .map((category) => category.toDarwinNotificationCategory())
+      config.darwinActionCategories!.map((category) => category.toDarwinNotificationCategory())
           .toList();
 
       // iOS initialization settings (update to use processed categories)
@@ -347,6 +320,104 @@ class NotificationService {
         print('Error initializing notification service: $e');
       }
     }
+  }
+
+  // Configure Firebase Cloud Messaging
+  Future<void> _configureFCM() async {
+    // Handle background messages
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Handle foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (_onForegroundMessage != null) {
+        _onForegroundMessage!(message);
+      }
+      // Show local notification for foreground message
+      _handleForegroundMessage(message);
+    });
+
+    // Handle when app is opened from terminated state
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null && _onMessageOpenedApp != null) {
+        _onMessageOpenedApp!(message);
+      }
+    });
+
+    // Handle when app is opened from background state
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (_onMessageOpenedApp != null) {
+        _onMessageOpenedApp!(message);
+      }
+    });
+  }
+
+  // Get FCM token
+  Future<void> _getFCMToken() async {
+    try {
+      _fcmToken = await _firebaseMessaging.getToken();
+      if (kDebugMode) {
+        print('FCM Token: $_fcmToken');
+      }
+
+      // Listen for token refresh
+      _firebaseMessaging.onTokenRefresh.listen((String token) {
+        _fcmToken = token;
+        if (kDebugMode) {
+          print('FCM Token Refreshed: $token');
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting FCM token: $e');
+      }
+    }
+  }
+
+  // Handle foreground messages
+  Future<void> _handleForegroundMessage(RemoteMessage message) async {
+    // Extract notification data
+    final notification = message.notification;
+    final android = message.notification?.android;
+    final apple = message.notification?.apple;
+
+    if (notification != null) {
+      // Show local notification
+      await showNotification(
+        title: notification.title ?? '',
+        body: notification.body ?? '',
+        payload: message.data.toString(),
+        imagePath: android?.imageUrl ?? apple?.imageUrl,
+      );
+    }
+  }
+
+  // Subscribe to FCM topic
+  Future<void> subscribeToTopic(String topic) async {
+    await _firebaseMessaging.subscribeToTopic(topic);
+  }
+
+  // Unsubscribe from FCM topic
+  Future<void> unsubscribeFromTopic(String topic) async {
+    await _firebaseMessaging.unsubscribeFromTopic(topic);
+  }
+
+  // Request FCM permission (iOS only)
+  Future<bool> requestFCMPermission() async {
+    if (Platform.isIOS) {
+      final settings = await _firebaseMessaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return settings.authorizationStatus == AuthorizationStatus.authorized;
+    }
+    return true;
+  }
+
+  // Delete FCM token
+  Future<void> deleteFCMToken() async {
+    await _firebaseMessaging.deleteToken();
+    _fcmToken = null;
   }
 
   // Request notification permissions
@@ -425,6 +496,19 @@ class NotificationService {
           }
           break;
       }
+    }
+  }
+
+// Firebase background message handler
+  @pragma('vm:entry-point')
+  Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+    // Initialize Firebase for background handler
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+
+    if (kDebugMode) {
+      print('Handling background message: ${message.messageId}');
     }
   }
 

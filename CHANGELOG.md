@@ -1,3 +1,7 @@
+## 2.0.7
+- Updated firebase push notification service
+## 2.0.6
+- Added firebase push notification service
 ## 2.0.5
 - Update flutter local notification service
 ## 2.0.4
