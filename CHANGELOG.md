@@ -1,3 +1,5 @@
+## 2.0.8
+- Fix firebase notification service issue
 ## 2.0.7
 - Updated firebase push notification service
 ## 2.0.6
