@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  flutter_timezone
   itq_utils
   url_launcher_linux
 )

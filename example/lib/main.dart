@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:itq_utils/itq_utils.dart';
-import 'package:itq_utils_example/local_notification.dart';
 
 import 'animated_listview_example.dart';
 
@@ -131,13 +130,6 @@ class _HomePageState extends State<HomePage> {
                     onCompleted: (s) {
                       toast('onCompleted $s');
                     },
-                  ),
-                  16.height,
-                  TextButton(
-                    onPressed: () {
-                      NotificationHomePage().launch(context);
-                    },
-                    child: Text('Local Notification Example'),
                   ),
                   16.height,
                   TextButton(

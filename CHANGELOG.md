@@ -1,3 +1,5 @@
+## 2.0.9
+- Removed firebase and local notification service from here and build new package for this
 ## 2.0.8
 - Fix firebase notification service issue
 ## 2.0.7
