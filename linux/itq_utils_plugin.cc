@@ -1,4 +1,4 @@
-#include "include/itq_utils/itq_utils_plugin.h"
+#include "include/itq_utils/i_t_q_utils_plugin.h"
 
 #include <flutter_linux/flutter_linux.h>
 #include <gtk/gtk.h>

@@ -2,7 +2,7 @@
 
 #include <flutter/plugin_registrar_windows.h>
 
-#include "itq_utils_plugin.h"
+#include "i_t_q_utils_plugin.h"
 
 void ItqUtilsPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
