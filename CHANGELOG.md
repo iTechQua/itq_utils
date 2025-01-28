@@ -1,3 +1,5 @@
+## 2.1.0
+- Windows error fixed
 ## 2.0.9
 - Removed firebase and local notification service from here and build new package for this
 ## 2.0.8
