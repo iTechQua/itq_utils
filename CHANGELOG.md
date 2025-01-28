@@ -1,3 +1,5 @@
+## 2.1.1
+- Windows error fixed
 ## 2.1.0
 - Windows error fixed
 ## 2.0.9
