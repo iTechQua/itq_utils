@@ -6,7 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <itq_utils/i_t_q_utils_plugin.h>
+#include <itq_utils/itq_utils_plugin.h>
 #include <url_launcher_linux/url_launcher_plugin.h>
 
 void fl_register_plugins(FlPluginRegistry* registry) {

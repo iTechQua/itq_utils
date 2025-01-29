@@ -1,17 +1,20 @@
-import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart';
-import 'package:html/parser.dart' show parse;
+import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:version/version.dart';
 
 class PlayStoreSearchAPI {
-  PlayStoreSearchAPI({http.Client? client}) : client = client ?? http.Client();
+  PlayStoreSearchAPI({http.Client? client, this.clientHeaders})
+      : client = client ?? http.Client();
 
   /// Play Store Search Api URL
   final String playStorePrefixURL = 'play.google.com';
 
   /// Provide an HTTP Client that can be replaced for mock testing.
   final http.Client? client;
+
+  /// Provide the HTTP headers used by [client].
+  final Map<String, String>? clientHeaders;
 
   /// Enable print statements for debugging.
   bool debugLogging = false;
@@ -27,36 +30,36 @@ class PlayStoreSearchAPI {
     final url = lookupURLById(id,
         country: country, language: language, useCacheBuster: useCacheBuster)!;
     if (debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: lookupById url: $url');
-      }
+      print('upgrader: lookupById url: $url');
     }
 
     try {
-      final response = await client!.get(Uri.parse(url));
+      final response =
+          await client!.get(Uri.parse(url), headers: clientHeaders);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         if (debugLogging) {
-          if (kDebugMode) {
-            print(
-              'upgradeAlert: Can\'t find an app in the Play Store with the id: $id');
-          }
+          print(
+              'upgrader: Can\'t find an app in the Play Store with the id: $id');
         }
         return null;
       }
+
+      // Uncomment for creating unit test input files.
+      // final file = io.File('file.txt');
+      // await file.writeAsBytes(response.bodyBytes);
 
       final decodedResults = _decodeResults(response.body);
 
       return decodedResults;
     } on Exception catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgradeAlert: lookupById exception: $e');
-        }
+        print('upgrader: lookupById exception: $e');
       }
       return null;
     }
   }
 
+  /// Create a URL that points to the Play Store details for an app.
   String? lookupURLById(String id,
       {String? country = 'US',
       String? language = 'en',
@@ -116,9 +119,7 @@ extension PlayStoreResults on PlayStoreSearchAPI {
       return description;
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgradeAlert: PlayStoreResults.redesignedDescription exception: $e');
-        }
+        print('upgrader: PlayStoreResults.redesignedDescription exception: $e');
       }
     }
     return null;
@@ -147,19 +148,15 @@ extension PlayStoreResults on PlayStoreSearchAPI {
             version = Version.parse(mav);
           } on Exception catch (e) {
             if (debugLogging) {
-              if (kDebugMode) {
-                print(
-                  'upgradeAlert: PlayStoreResults.minAppVersion: mav=$mav, tag=$tagRegExpSource, error=$e');
-              }
+              print(
+                  'upgrader: PlayStoreResults.minAppVersion: mav=$mav, tag=$tagRegExpSource, error=$e');
             }
           }
         }
       }
     } on Exception catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgrade.PlayStoreResults.minAppVersion : $e');
-        }
+        print('upgrader.PlayStoreResults.minAppVersion : $e');
       }
     }
     return version;
@@ -199,10 +196,8 @@ extension PlayStoreResults on PlayStoreSearchAPI {
       return releaseNotes;
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print(
-            'upgradeAlert: PlayStoreResults.redesignedReleaseNotes exception: $e');
-        }
+        print(
+            'upgrader: PlayStoreResults.redesignedReleaseNotes exception: $e');
       }
     }
     return null;
@@ -265,9 +260,10 @@ extension PlayStoreResults on PlayStoreSearchAPI {
               .indexOf(patternEndOfString);
       final storeName =
           nameElement.substring(storeNameStartIndex, storeNameEndIndex);
+      final storeNameCleaned = storeName.replaceAll(r'\u0027', '\'');
 
       final versionElement = additionalInfoElementsFiltered
-          .where((element) => element.text.contains("\"$storeName\""))
+          .where((element) => element.text.contains("\"$storeNameCleaned\""))
           .first
           .text;
       final storeVersionStartIndex =
@@ -283,9 +279,7 @@ extension PlayStoreResults on PlayStoreSearchAPI {
       version = Version.parse(storeVersion).toString();
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgradeAlert: PlayStoreResults.redesignedVersion exception: $e');
-        }
+        print('upgrader: PlayStoreResults.redesignedVersion exception: $e');
       }
     }
 

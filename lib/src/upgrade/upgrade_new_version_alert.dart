@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:itq_utils/itq_utils.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_messages.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_state.dart';
+
 
 /// There are two different dialog styles: Cupertino and Material
 enum UpgradeDialogStyle { cupertino, material }
@@ -9,44 +11,32 @@ enum UpgradeDialogStyle { cupertino, material }
 /// A widget to display the upgrade dialog.
 /// Override the [createState] method to provide a custom class
 /// with overridden methods.
-class UpgradeAlertDialog extends StatefulWidget {
-  /// Creates a new [UpgradeAlertDialog].
-  UpgradeAlertDialog({
+class UpgradeAlert extends StatefulWidget {
+  /// Creates a new [UpgradeAlert].
+  UpgradeAlert({
     super.key,
-    UpgradeNewVersion? upgradeAlert,
-    this.canDismissDialog = false,
+    Upgrader? upgrader,
+    this.barrierDismissible = false,
     this.dialogStyle = UpgradeDialogStyle.material,
     this.onIgnore,
     this.onLater,
     this.onUpdate,
     this.shouldPopScope,
     this.showIgnore = true,
-    this.buttonSize = 30,
-    this.buttonFontSize = 15,
-    this.primaryColor = Colors.green,
-    this.ignoreColor = Colors.orange,
-    this.laterColor = Colors.indigo,
-    this.buttonBorderColor = Colors.indigo,
     this.showLater = true,
     this.showReleaseNotes = true,
     this.cupertinoButtonTextStyle,
     this.dialogKey,
     this.navigatorKey,
     this.child,
-  }) : upgrade = upgradeAlert ?? UpgradeNewVersion.sharedInstance;
+  }) : upgrader = upgrader ?? Upgrader.sharedInstance;
 
-  /// The upgrade used to configure the upgrade dialog.
-  final UpgradeNewVersion upgrade;
+  /// The upgraders used to configure the upgrade dialog.
+  final Upgrader upgrader;
 
-  /// Can alert dialog be dismissed on tap outside of the alert dialog. Not used by [UpgradeCard]. (default: false)
-  final bool canDismissDialog;
-
-  final Color primaryColor;
-  final Color laterColor;
-  final Color ignoreColor;
-  final Color buttonBorderColor;
-  final double buttonSize;
-  final double buttonFontSize;
+  /// The `barrierDismissible` argument is used to indicate whether tapping on the
+  /// barrier will dismiss the dialog. (default: false)
+  final bool barrierDismissible;
 
   /// The upgrade dialog style. Used only on UpgradeAlert. (default: material)
   final UpgradeDialogStyle dialogStyle;
@@ -62,9 +52,7 @@ class UpgradeAlertDialog extends StatefulWidget {
   /// Return false when the default behavior should not execute.
   final BoolCallback? onUpdate;
 
-  /// Called when the user taps outside of the dialog and [canDismissDialog]
-  /// is false. Also called when the back button is pressed. Return true for
-  /// the screen to be popped.
+  /// Called to determine if the dialog blocks the current route from being popped.
   final BoolCallback? shouldPopScope;
 
   /// Hide or show Ignore button on dialog (default: true)
@@ -90,50 +78,47 @@ class UpgradeAlertDialog extends StatefulWidget {
   final Widget? child;
 
   @override
-  UpgradeAlertDialogState createState() => UpgradeAlertDialogState();
+  UpgradeAlertState createState() => UpgradeAlertState();
 }
 
-/// The [UpgradeAlertDialog] widget state.
-class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
+/// The [UpgradeAlert] widget state.
+class UpgradeAlertState extends State<UpgradeAlert> {
   /// Is the alert dialog being displayed right now?
   bool displayed = false;
 
   @override
   void initState() {
     super.initState();
-    widget.upgrade.initialize();
+    widget.upgrader.initialize();
   }
 
   /// Describes the part of the user interface represented by this widget.
   @override
   Widget build(BuildContext context) {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: build UpgradeAlert');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: build UpgradeAlert');
     }
 
     return StreamBuilder(
-      initialData: widget.upgrade.evaluationReady,
-      stream: widget.upgrade.evaluationStream,
-      builder:
-          (BuildContext context, AsyncSnapshot<UpgradeEvaluateNeed> snapshot) {
+      initialData: widget.upgrader.state,
+      stream: widget.upgrader.stateStream,
+      builder: (BuildContext context, AsyncSnapshot<UpgraderState> snapshot) {
         if ((snapshot.connectionState == ConnectionState.waiting ||
-            snapshot.connectionState == ConnectionState.active) &&
-            snapshot.data != null &&
-            snapshot.data!) {
-          if (widget.upgrade.debugLogging) {
-            if (kDebugMode) {
-              print("upgradeAlert: need to evaluate version");
+                snapshot.connectionState == ConnectionState.active) &&
+            snapshot.data != null) {
+          final upgraderState = snapshot.data!;
+          if (upgraderState.versionInfo != null) {
+            if (widget.upgrader.state.debugLogging) {
+              print("upgrader: need to evaluate version");
             }
-          }
 
-          if (!displayed) {
-            final checkContext = widget.navigatorKey != null &&
-                widget.navigatorKey!.currentContext != null
-                ? widget.navigatorKey!.currentContext!
-                : context;
-            checkVersion(context: checkContext);
+            if (!displayed) {
+              final checkContext = widget.navigatorKey != null &&
+                      widget.navigatorKey!.currentContext != null
+                  ? widget.navigatorKey!.currentContext!
+                  : context;
+              checkVersion(context: checkContext);
+            }
           }
         }
         return widget.child ?? const SizedBox.shrink();
@@ -142,27 +127,25 @@ class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
   }
 
   /// Will show the alert dialog when it should be dispalyed.
-  /// Only called by [UpgradeAlertDialog] and not used by [UpgradeCard].
   void checkVersion({required BuildContext context}) {
-    final shouldDisplay = widget.upgrade.shouldDisplayUpgrade();
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: shouldDisplayReleaseNotes: shouldDisplayReleaseNotes');
-      }
+    final shouldDisplay = widget.upgrader.shouldDisplayUpgrade();
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: shouldDisplayReleaseNotes: $shouldDisplayReleaseNotes');
     }
     if (shouldDisplay) {
       displayed = true;
-      final appMessages = widget.upgrade.determineMessages(context);
+      final appMessages = widget.upgrader.determineMessages(context);
 
-      Future.delayed(const Duration(milliseconds: 0), () {
+      Future.delayed(Duration.zero, () {
         showTheDialog(
-          key: widget.dialogKey ?? const Key('upgrade_alert_dialog'),
+          key: widget.dialogKey ?? const Key('upgrader_alert_dialog'),
+          // ignore: use_build_context_synchronously
           context: context,
-          title: appMessages.message(upgradeAlertMessage.title),
-          message: widget.upgrade.body(appMessages),
+          title: appMessages.message(UpgraderMessage.title),
+          message: widget.upgrader.body(appMessages),
           releaseNotes:
-          shouldDisplayReleaseNotes ? widget.upgrade.releaseNotes : null,
-          canDismissDialog: widget.canDismissDialog,
+              shouldDisplayReleaseNotes ? widget.upgrader.releaseNotes : null,
+          barrierDismissible: widget.barrierDismissible,
           messages: appMessages,
         );
       });
@@ -170,17 +153,15 @@ class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
   }
 
   void onUserIgnored(BuildContext context, bool shouldPop) {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: button tapped: ignore');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: button tapped: ignore');
     }
 
     // If this callback has been provided, call it.
     final doProcess = widget.onIgnore?.call() ?? true;
 
     if (doProcess) {
-      widget.upgrade.saveIgnored();
+      widget.upgrader.saveIgnored();
     }
 
     if (shouldPop) {
@@ -189,10 +170,8 @@ class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
   }
 
   void onUserLater(BuildContext context, bool shouldPop) {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: button tapped: later');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: button tapped: later');
     }
 
     // If this callback has been provided, call it.
@@ -204,17 +183,15 @@ class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
   }
 
   void onUserUpdated(BuildContext context, bool shouldPop) {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: button tapped: update now');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: button tapped: update now');
     }
 
     // If this callback has been provided, call it.
     final doProcess = widget.onUpdate?.call() ?? true;
 
     if (doProcess) {
-      widget.upgrade.sendUserToAppStore();
+      widget.upgrader.sendUserToAppStore();
     }
 
     if (shouldPop) {
@@ -229,7 +206,7 @@ class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
 
   bool get shouldDisplayReleaseNotes =>
       widget.showReleaseNotes &&
-          (widget.upgrade.releaseNotes?.isNotEmpty ?? false);
+      (widget.upgrader.releaseNotes?.isNotEmpty ?? false);
 
   /// Show the alert dialog.
   void showTheDialog({
@@ -238,54 +215,53 @@ class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
     required String? title,
     required String message,
     required String? releaseNotes,
-    required bool canDismissDialog,
-    required UpgradeAlertMessages messages,
+    required bool barrierDismissible,
+    required UpgraderMessages messages,
   }) {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: showTheDialog title: $title');
-        print('upgradeAlert: showTheDialog message: $message');
-        print('upgradeAlert: showTheDialog releaseNotes: $releaseNotes');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: showTheDialog title: $title');
+      print('upgrader: showTheDialog message: $message');
+      print('upgrader: showTheDialog releaseNotes: $releaseNotes');
     }
 
     // Save the date/time as the last time alerted.
-    widget.upgrade.saveLastAlerted();
+    widget.upgrader.saveLastAlerted();
 
     showDialog(
-      barrierDismissible: canDismissDialog,
+      barrierDismissible: barrierDismissible,
       context: context,
       builder: (BuildContext context) {
-        return WillPopScope(
-            onWillPop: () async => onWillPop(),
-            child: alertDialog(
-              key,
-              title ?? '',
-              message,
-              releaseNotes,
-              context,
-              widget.dialogStyle == UpgradeDialogStyle.cupertino,
-              messages,
-            ));
+        return PopScope(
+          canPop: onCanPop(),
+          onPopInvokedWithResult: (didPop, result) {
+            if (widget.upgrader.state.debugLogging) {
+              print('upgrader: showTheDialog onPopInvoked: $didPop');
+            }
+          },
+          child: alertDialog(
+            key,
+            title ?? '',
+            message,
+            releaseNotes,
+            context,
+            widget.dialogStyle == UpgradeDialogStyle.cupertino,
+            messages,
+          ),
+        );
       },
     );
   }
 
-  /// Called when the user taps outside of the dialog and [canDismissDialog]
-  /// is false. Also called when the back button is pressed. Return true for
-  /// the screen to be popped. Defaults to false.
-  bool onWillPop() {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: onWillPop called');
-      }
+  /// Determines if the dialog blocks the current route from being popped.
+  /// Will return the result from [shouldPopScope] if it is not null, otherwise it will return false.
+  bool onCanPop() {
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: onCanPop called');
     }
     if (widget.shouldPopScope != null) {
       final should = widget.shouldPopScope!();
-      if (widget.upgrade.debugLogging) {
-        if (kDebugMode) {
-          print('upgradeAlert: shouldPopScope=$should');
-        }
+      if (widget.upgrader.state.debugLogging) {
+        print('upgrader: shouldPopScope=$should');
       }
       return should;
     }
@@ -300,10 +276,10 @@ class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
       String? releaseNotes,
       BuildContext context,
       bool cupertino,
-      UpgradeAlertMessages messages) {
+      UpgraderMessages messages) {
     // If installed version is below minimum app version, or is a critical update,
     // disable ignore and later buttons.
-    final isBlocked = widget.upgrade.blocked();
+    final isBlocked = widget.upgrader.blocked();
     final showIgnore = isBlocked ? false : widget.showIgnore;
     final showLater = isBlocked ? false : widget.showLater;
 
@@ -317,88 +293,74 @@ class UpgradeAlertDialogState extends State<UpgradeAlertDialog> {
                 ? CrossAxisAlignment.center
                 : CrossAxisAlignment.start,
             children: <Widget>[
-              Text(messages.message(upgradeAlertMessage.releaseNotes) ?? '',
+              Text(messages.message(UpgraderMessage.releaseNotes) ?? '',
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(releaseNotes),
             ],
           ));
     }
-    final textTitle = Column(
-      children: [
-        Text(title, key: const Key('upgrade.dialog.title'), style: boldTextStyle(size: 20),),
-        Divider(color: widget.buttonBorderColor,)
-      ],
-    );
+    final textTitle = Text(title, key: const Key('upgrader.dialog.title'));
     final content = Container(
         constraints: const BoxConstraints(maxHeight: 400),
         child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment:
+          crossAxisAlignment:
               cupertino ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(message),
-                Padding(
-                    padding: const EdgeInsets.only(top: 15.0),
-                    child: Text(messages.message(upgradeAlertMessage.prompt) ?? '')),
-                if (notes != null) notes,
-              ],
-            )));
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(message),
+            Padding(
+                padding: const EdgeInsets.only(top: 15.0),
+                child: Text(messages.message(UpgraderMessage.prompt) ?? '')),
+            if (notes != null) notes,
+          ],
+        )));
     final actions = <Widget>[
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (showIgnore)
-            button(cupertino, messages.message(upgradeAlertMessage.buttonTitleIgnore),
-                context, () => onUserIgnored(context, true), widget.ignoreColor),
-          if (showLater)
-            button(cupertino, messages.message(upgradeAlertMessage.buttonTitleLater),
-                context, () => onUserLater(context, true), widget.laterColor),
-          button(cupertino, messages.message(upgradeAlertMessage.buttonTitleUpdate),
-              context, () => onUserUpdated(context, !widget.upgrade.blocked()), widget.primaryColor),
-        ],
-      )
+      if (showIgnore)
+        button(
+          cupertino: cupertino,
+          text: messages.message(UpgraderMessage.buttonTitleIgnore),
+          context: context,
+          onPressed: () => onUserIgnored(context, true),
+          isDefaultAction: false,
+        ),
+      if (showLater)
+        button(
+          cupertino: cupertino,
+          text: messages.message(UpgraderMessage.buttonTitleLater),
+          context: context,
+          onPressed: () => onUserLater(context, true),
+          isDefaultAction: false,
+        ),
+      button(
+        cupertino: cupertino,
+        text: messages.message(UpgraderMessage.buttonTitleUpdate),
+        context: context,
+        onPressed: () => onUserUpdated(context, !widget.upgrader.blocked()),
+        isDefaultAction: true,
+      ),
     ];
 
     return cupertino
         ? CupertinoAlertDialog(
-        key: key, title: textTitle, content: content, actions: actions)
+            key: key, title: textTitle, content: content, actions: actions)
         : AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        key: key, title: textTitle, content: content, actions: actions);
+            key: key, title: textTitle, content: content, actions: actions);
   }
 
-  Widget button(bool cupertino, String? text, BuildContext context,
-      VoidCallback? onPressed, Color color) {
-        return cupertino
+  Widget button({
+    required bool cupertino,
+    String? text,
+    required BuildContext context,
+    VoidCallback? onPressed,
+    bool isDefaultAction = false,
+  }) {
+    return cupertino
         ? CupertinoDialogAction(
             textStyle: widget.cupertinoButtonTextStyle,
             onPressed: onPressed,
+            isDefaultAction: isDefaultAction,
             child: Text(text ?? ''))
-        : Expanded(
-            child: TextButton(onPressed: onPressed, child: Container(
-                height: widget.buttonSize,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: widget.buttonBorderColor,
-                  ),
-                  color: color,
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: Center(
-                  child: Text(
-                    text??'',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: widget.buttonFontSize
-                    ),
-                  ),
-                ),
-              ),
-          ),
-        );
+        : TextButton(onPressed: onPressed, child: Text(text ?? ''));
   }
 }

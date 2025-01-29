@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 /// This allows a value of type T or T? to be treated as a value of type T?.
 ///
 /// We use this so that APIs that have become non-nullable can still be used
-/// with `!` and `?` to support older versions of the API as well.
+/// with `!` and `?` to support older versions of the API as w ell.
 T? ambiguate<T>(T? value) => value;
 
-/// The message identifiers used in upgrade.
-enum upgradeAlertMessage {
+/// The message identifiers used in upgrader.
+enum UpgraderMessage {
   /// Body of the upgrade message
   body,
 
@@ -32,7 +32,7 @@ enum upgradeAlertMessage {
   title,
 }
 
-/// The default localized messages used for display in upgrade. Extend this
+/// The default localized messages used for display in upgrader. Extend this
 /// class to provide custom values and new localizations for languages.
 /// An example to replace the Ignore button with a custom value would be:
 ///
@@ -42,40 +42,40 @@ enum upgradeAlertMessage {
 ///   String get buttonTitleIgnore => 'My Ignore';
 /// }
 ///
-/// UpgradeAlert(messages: MyUpgraderMessages());
+/// final upgrader = Upgrader(messages: MyUpgraderMessages());
+/// ...
+/// UpgradeAlert(upgrader: upgrader);
 /// ```
 ///
-class UpgradeAlertMessages {
+class UpgraderMessages {
   /// The primary language subtag for the locale, which defaults to the
   /// system-reported default locale of the device.
   final String languageCode;
 
   /// Provide a [code] to override the system-reported default locale.
-  UpgradeAlertMessages({String? code})
+  UpgraderMessages({String? code})
       : languageCode = (code ?? findLanguageCode()) {
     assert(languageCode.isNotEmpty);
   }
 
   /// Override the message function to provide custom language localization.
-  String? message(upgradeAlertMessage messageKey) {
+  String? message(UpgraderMessage messageKey) {
     switch (messageKey) {
-      case upgradeAlertMessage.body:
+      case UpgraderMessage.body:
         return body;
-      case upgradeAlertMessage.buttonTitleIgnore:
+      case UpgraderMessage.buttonTitleIgnore:
         return buttonTitleIgnore;
-      case upgradeAlertMessage.buttonTitleLater:
+      case UpgraderMessage.buttonTitleLater:
         return buttonTitleLater;
-      case upgradeAlertMessage.buttonTitleUpdate:
+      case UpgraderMessage.buttonTitleUpdate:
         return buttonTitleUpdate;
-      case upgradeAlertMessage.prompt:
+      case UpgraderMessage.prompt:
         return prompt;
-      case upgradeAlertMessage.releaseNotes:
+      case UpgraderMessage.releaseNotes:
         return releaseNotes;
-      case upgradeAlertMessage.title:
+      case UpgraderMessage.title:
         return title;
-      default:
     }
-    return null;
   }
 
   /// Determine the current language code, either from the context, or
@@ -84,13 +84,11 @@ class UpgradeAlertMessages {
     Locale? locale;
     if (context != null) {
       locale = Localizations.maybeLocaleOf(context);
-    } else {
-      // Get the system locale
-      locale = PlatformDispatcher.instance.locale;
     }
-    final code = locale == null || locale.languageCode.isEmpty
-        ? 'en'
-        : locale.languageCode;
+    // Get the system locale
+    locale ??= PlatformDispatcher.instance.locale;
+
+    final code = locale.languageCode.isEmpty ? 'en' : locale.languageCode;
     return code;
   }
 
@@ -149,11 +147,11 @@ class UpgradeAlertMessages {
         break;
       case 'hi':
         message =
-            '{app name} का एक नया संस्करण उपलब्ध है। संस्करण {{currentAppStoreVersion}} अब उपलब्ध है-आपके पास है {{currentInstalledVersion}}.';
+            '{{app name}} का एक नया संस्करण उपलब्ध है। आपके पास संस्करण {{currentInstalledVersion}} है, लेकिन अब {{currentAppStoreVersion}} उपलब्ध है।';
         break;
       case 'ht':
         message =
-            'Yon nouvo vèsyon {{appName}} disponib! Vèsyon {{currentAppStoreVersion}} disponib, epi ou gen vèsyon {{currentInstalledVersion}}.';
+            'Yon nouvo vèsyon {{appName}} disponib! Vèsyon {{currentAppStoreVersion}} disponib, ou gen vèsyon {{currentInstalledVersion}}.';
         break;
       case 'hu':
         message =
@@ -165,7 +163,7 @@ class UpgradeAlertMessages {
         break;
       case 'it':
         message =
-            'Una nuova versione di {{appName}} è disponibile! La versione {{currentAppStoreVersion}} è ora disponibile, voi avete {{currentInstalledVersion}}.';
+            'Una nuova versione di {{appName}} è disponibile! La versione {{currentAppStoreVersion}} è ora disponibile, voi avete la {{currentInstalledVersion}}.';
         break;
       case 'ja':
         message =
@@ -182,6 +180,10 @@ class UpgradeAlertMessages {
       case 'ko':
         message =
             '{{appName}}이 새 버전으로 업데이트되었습니다! 최신 버전 {{currentAppStoreVersion}}으로 업그레이드 가능합니다 - 현재 버전 {{currentInstalledVersion}}.';
+        break;
+      case 'ku':
+        message =
+            'وەشانی نوێی {{appName}} بەردەستە! وەشانی {{currentAppStoreVersion}} بەردەستە- تۆ وەشانی {{currentInstalledVersion}} دابەزاندوە.';
         break;
       case 'lt':
         message =
@@ -206,6 +208,10 @@ class UpgradeAlertMessages {
       case 'pl':
         message =
             'Nowa wersja {{appName}} jest dostępna! Wersja {{currentAppStoreVersion}} jest dostępna, Ty masz {{currentInstalledVersion}}.';
+        break;
+      case 'ps':
+        message =
+            'د {{appName}} آپلیکشن  نوې نسخه شتون لري! {{currentAppStoreVersion}} شتون لري، مګر تاسو اوس هم {{currentInstalledVersion}} کاروئ.';
         break;
       case 'ru':
         message =
@@ -285,10 +291,10 @@ class UpgradeAlertMessages {
         message = 'התעלם';
         break;
       case 'hi':
-        message = 'नज़रअंदाज़ करना';
+        message = 'नज़रअंदाज़ करें';
         break;
       case 'ht':
-        message = 'IGNORE';
+        message = 'INYORE';
         break;
       case 'hu':
         message = 'KIHAGYOM';
@@ -311,6 +317,9 @@ class UpgradeAlertMessages {
       case 'ko':
         message = '무시';
         break;
+      case 'ku':
+        message = 'پشتگوێخستن';
+        break;
       case 'lt':
         message = 'IGNORUOTI';
         break;
@@ -328,6 +337,9 @@ class UpgradeAlertMessages {
         break;
       case 'pl':
         message = 'IGNORUJ';
+        break;
+      case 'ps':
+        message = 'ردکول';
         break;
       case 'ru':
         message = 'НЕТ';
@@ -368,9 +380,6 @@ class UpgradeAlertMessages {
     String message;
     switch (languageCode) {
       case 'ar':
-        //only minor change here, removing the character at the left top of the arabic word (لاحقاً)
-        // before: message = 'لاحقاً';
-        //now:
         message = 'لاحقا';
         break;
       case 'bn':
@@ -401,7 +410,7 @@ class UpgradeAlertMessages {
         message = 'אחר-כך';
         break;
       case 'hi':
-        message = 'बाद में';
+        message = 'बाद में करें';
         break;
       case 'ht':
         message = 'PITA';
@@ -427,6 +436,9 @@ class UpgradeAlertMessages {
       case 'ko':
         message = '나중에';
         break;
+      case 'ku':
+        message = 'دواتر';
+        break;
       case 'lt':
         message = 'ATNAUJINTI VĖLIAU';
         break;
@@ -444,6 +456,9 @@ class UpgradeAlertMessages {
         break;
       case 'pl':
         message = 'PÓŹNIEJ';
+        break;
+      case 'ps':
+        message = 'وروسته';
         break;
       case 'ru':
         message = 'ПОЗЖЕ';
@@ -468,7 +483,6 @@ class UpgradeAlertMessages {
         break;
       case 'zh':
         message = '以后';
-        break;
       case 'en':
       default:
         message = 'LATER';
@@ -514,7 +528,7 @@ class UpgradeAlertMessages {
         message = 'עדכן';
         break;
       case 'hi':
-        message = 'अभी अद्यतन करें';
+        message = 'अभी नया संस्करण स्थापित करें';
         break;
       case 'ht':
         message = 'MIZAJOU KOUNYE A';
@@ -540,6 +554,9 @@ class UpgradeAlertMessages {
       case 'ko':
         message = '지금 업데이트';
         break;
+      case 'ku':
+        message = 'نوێکردنەوە';
+        break;
       case 'lt':
         message = 'ATNAUJINTI DABAR';
         break;
@@ -557,6 +574,9 @@ class UpgradeAlertMessages {
         break;
       case 'pl':
         message = 'AKTUALIZUJ';
+        break;
+      case 'ps':
+        message = 'اوس تازه کړئ';
         break;
       case 'ru':
         message = 'ОБНОВИТЬ';
@@ -627,10 +647,10 @@ class UpgradeAlertMessages {
         message = 'האם תרצה לעדכן עכשיו?';
         break;
       case 'hi':
-        message = 'क्या आप इसे अभी अद्यतन करना चाहेंगे?';
+        message = 'क्या आप इसे अभी नया संस्करण स्थापित करना चाहेंगे?';
         break;
       case 'ht':
-        message = 'Èske ou vle mete ajou aplikasyon an kounye a?';
+        message = 'Èske ou vle mete aplikasyon an ajou kounye a?';
         break;
       case 'hu':
         message = 'Akarja most frissíteni?';
@@ -639,7 +659,7 @@ class UpgradeAlertMessages {
         message = 'Apakah Anda ingin memperbaruinya sekarang?';
         break;
       case 'it':
-        message = 'Ti piacerebbe aggiornare ora?';
+        message = 'Vorresti aggiornare ora?';
         break;
       case 'ja':
         message = '今すぐアップデートしますか?';
@@ -652,6 +672,9 @@ class UpgradeAlertMessages {
         break;
       case 'ko':
         message = '지금 업데이트를 시작하시겠습니까?';
+        break;
+      case 'ku':
+        message = 'دەتەوێت ئێستا نوێی بکەیەوە؟';
         break;
       case 'lt':
         message = 'Ar norite atnaujinti dabar?';
@@ -669,7 +692,10 @@ class UpgradeAlertMessages {
         message = 'Você quer atualizar agora?';
         break;
       case 'pl':
-        message = 'Czy citqiałbyś zaktualizować teraz?';
+        message = 'Czy chciałbyś zaktualizować teraz?';
+        break;
+      case 'ps':
+        message = 'آی غواړئ دا اوس تازه کړئ؟';
         break;
       case 'ru':
         message = 'Хотите обновить сейчас?';
@@ -728,7 +754,7 @@ class UpgradeAlertMessages {
         message = 'חדש בגרסה';
         break;
       case 'hi':
-        message = 'रिहाई टिप्पणी';
+        message = 'नए संस्करण का विवरण';
         break;
       case 'id':
         message = 'Catatan Rilis';
@@ -738,6 +764,9 @@ class UpgradeAlertMessages {
         break;
       case 'ja':
         message = 'リリースノート';
+        break;
+      case 'ku':
+        message = 'تیبینەکانی وەشان';
         break;
       case 'pt':
         message = 'Novidades';
@@ -766,6 +795,7 @@ class UpgradeAlertMessages {
       case 'nb':
       case 'nl':
       case 'pl':
+      case 'ps':
       case 'sv':
       case 'ta':
       case 'uk':
@@ -816,10 +846,10 @@ class UpgradeAlertMessages {
         message = 'לעדכן יישומון?';
         break;
       case 'hi':
-        message = 'अद्यतन ऐप?';
+        message = 'ऐप का नया संस्करण स्थापित करें?';
         break;
       case 'ht':
-        message = 'Mete ajou app a?';
+        message = 'Mete app la ajou?';
         break;
       case 'hu':
         message = 'FrissÍtés?';
@@ -842,6 +872,9 @@ class UpgradeAlertMessages {
       case 'ko':
         message = '앱을 업데이트하시겠습니까?';
         break;
+      case 'ku':
+        message = 'نوێکردنەوەی ئەپ؟';
+        break;
       case 'lt':
         message = 'Atnaujinti programą?';
         break;
@@ -859,6 +892,9 @@ class UpgradeAlertMessages {
         break;
       case 'pl':
         message = 'Czy zaktualizować aplikację?';
+        break;
+      case 'ps':
+        message = 'نوې نسخه';
         break;
       case 'ru':
         message = 'Обновить?';

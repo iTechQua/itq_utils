@@ -1,9 +1,24 @@
+/*
+ * Copyright (c) 2021-2023 Larry Aasen. All rights reserved.
+ */
+
 import "package:os_detect/os_detect.dart" as platform;
 import 'package:flutter/foundation.dart';
 
+enum UpgraderOSType {
+  android,
+  fuchsia,
+  ios,
+  linux,
+  macos,
+  web,
+  windows,
+}
+
 /// A class that indicates which OS this code is running on.
-class UpgradeOS {
+class UpgraderOS {
   String? _current;
+  UpgraderOSType? _currentOSType;
 
   String get current {
     if (_current != null) return _current!;
@@ -23,6 +38,26 @@ class UpgradeOS {
                                 ? 'windows'
                                 : '';
     return _current ?? '';
+  }
+
+  UpgraderOSType get currentOSType {
+    if (_currentOSType != null) return _currentOSType!;
+    _currentOSType = isAndroid
+        ? UpgraderOSType.android
+        : isFuchsia
+            ? UpgraderOSType.fuchsia
+            : isIOS
+                ? UpgraderOSType.ios
+                : isLinux
+                    ? UpgraderOSType.linux
+                    : isMacOS
+                        ? UpgraderOSType.macos
+                        : isWeb
+                            ? UpgraderOSType.web
+                            : isWindows
+                                ? UpgraderOSType.windows
+                                : UpgraderOSType.android;
+    return _currentOSType ?? UpgraderOSType.android;
   }
 
   /// The target operating system.
@@ -105,11 +140,29 @@ class UpgradeOS {
       return false;
     }
   }
+
+  /// Get the current OS type formatted, such as 'Android', 'iOS', etc.
+  String get currentTypeFormatted {
+    return switch (currentOSType) {
+      UpgraderOSType.android => 'Android',
+      UpgraderOSType.fuchsia => 'Fuchsia',
+      UpgraderOSType.ios => 'iOS',
+      UpgraderOSType.linux => 'Linux',
+      UpgraderOSType.macos => 'macOS',
+      UpgraderOSType.web => 'Web',
+      UpgraderOSType.windows => 'Windows',
+    };
+  }
+
+  @override
+  String toString() {
+    return 'operatingSystem: $operatingSystem, version: $operatingSystemVersion';
+  }
 }
 
-/// A class to mock [UpgradeOS] for testing.
-class MockUpgradeOS extends UpgradeOS {
-  MockUpgradeOS({
+/// A class to mock [UpgraderOS] for testing.
+class MockUpgraderOS extends UpgraderOS {
+  MockUpgraderOS({
     this.os = '',
     this.osv = '',
     this.android = false,

@@ -69,11 +69,7 @@ class AlertStyleWidget extends StatelessWidget {
       ),
     ));
 
-    children.add(
-      OverflowBar(
-        children: actions,
-      ),
-    );
+    children.add(OverflowBar(children: actions));
 
     Widget dialogChild = IntrinsicWidth(
       child: Column(

@@ -1,20 +1,20 @@
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:itq_utils/src/upgrade/alert_style_widget.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_messages.dart';
+import 'package:itq_utils/src/upgrade/upgrade_new_version_state.dart';
+
 
 /// A widget to display the upgrade card.
 /// The only reason this is a [StatefulWidget] and not a [StatelessWidget] is that
 /// the widget needs to rebulid after one of the buttons have been tapped.
 /// Override the [createState] method to provide a custom class
 /// with overridden methods.
-class UpgradeNewVersionCard extends StatefulWidget {
-  /// Creates a new [UpgradeNewVersionCard].
-  UpgradeNewVersionCard({
+class UpgradeCard extends StatefulWidget {
+  /// Creates a new [UpgradeCard].
+  UpgradeCard({
     super.key,
-    UpgradeNewVersion? upgradeAlert,
+    Upgrader? upgrader,
     this.margin,
     this.maxLines = 15,
     this.onIgnore,
@@ -24,10 +24,10 @@ class UpgradeNewVersionCard extends StatefulWidget {
     this.showIgnore = true,
     this.showLater = true,
     this.showReleaseNotes = true,
-  }) : upgrade = upgradeAlert ?? UpgradeNewVersion.sharedInstance;
+  }) : upgrader = upgrader ?? Upgrader.sharedInstance;
 
-  /// The upgrade used to configure the upgrade dialog.
-  final UpgradeNewVersion upgrade;
+  /// The upgraders used to configure the upgrade dialog.
+  final Upgrader upgrader;
 
   /// The empty space that surrounds the card.
   ///
@@ -61,42 +61,39 @@ class UpgradeNewVersionCard extends StatefulWidget {
   final bool showReleaseNotes;
 
   @override
-  UpgradeNewVersionCardState createState() => UpgradeNewVersionCardState();
+  UpgradeCardState createState() => UpgradeCardState();
 }
 
-/// The [UpgradeNewVersionCard] widget state.
-class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
+/// The [UpgradeCard] widget state.
+class UpgradeCardState extends State<UpgradeCard> {
   @override
   void initState() {
     super.initState();
-    widget.upgrade.initialize();
+    widget.upgrader.initialize();
   }
 
   /// Describes the part of the user interface represented by this widget.
   @override
   Widget build(BuildContext context) {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: build UpgradeCard');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: build UpgradeCard');
     }
 
     return StreamBuilder(
-        initialData: widget.upgrade.evaluationReady,
-        stream: widget.upgrade.evaluationStream,
-        builder: (BuildContext context,
-            AsyncSnapshot<UpgradeEvaluateNeed> snapshot) {
+        initialData: widget.upgrader.state,
+        stream: widget.upgrader.stateStream,
+        builder: (BuildContext context, AsyncSnapshot<UpgraderState> snapshot) {
           if ((snapshot.connectionState == ConnectionState.waiting ||
                   snapshot.connectionState == ConnectionState.active) &&
-              snapshot.data != null &&
-              snapshot.data!) {
-            if (widget.upgrade.shouldDisplayUpgrade()) {
-              return buildUpgradeCard(
-                  context, const Key('upgrade_alert_card'));
-            } else {
-              if (widget.upgrade.debugLogging) {
-                if (kDebugMode) {
-                  print('upgradeAlert: UpgradeCard will not display');
+              snapshot.data != null) {
+            final upgraderState = snapshot.data!;
+            if (upgraderState.versionInfo != null) {
+              if (widget.upgrader.shouldDisplayUpgrade()) {
+                return buildUpgradeCard(
+                    context, const Key('upgrader_alert_card'));
+              } else {
+                if (widget.upgrader.state.debugLogging) {
+                  print('upgrader: UpgradeCard will not display');
                 }
               }
             }
@@ -107,21 +104,19 @@ class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
 
   /// Build the UpgradeCard widget.
   Widget buildUpgradeCard(BuildContext context, Key? key) {
-    final appMessages = widget.upgrade.determineMessages(context);
-    final title = appMessages.message(upgradeAlertMessage.title);
-    final message = widget.upgrade.body(appMessages);
-    final releaseNotes = widget.upgrade.releaseNotes;
+    final appMessages = widget.upgrader.determineMessages(context);
+    final title = appMessages.message(UpgraderMessage.title);
+    final message = widget.upgrader.body(appMessages);
+    final releaseNotes = widget.upgrader.releaseNotes;
 
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: UpgradeCard: will display');
-        print('upgradeAlert: UpgradeCard: showDialog title: $title');
-        print('upgradeAlert: UpgradeCard: showDialog message: $message');
-        print(
-            'upgradeAlert: UpgradeCard: shouldDisplayReleaseNotes: $shouldDisplayReleaseNotes');
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: UpgradeCard: will display');
+      print('upgrader: UpgradeCard: showDialog title: $title');
+      print('upgrader: UpgradeCard: showDialog message: $message');
+      print(
+          'upgrader: UpgradeCard: shouldDisplayReleaseNotes: $shouldDisplayReleaseNotes');
 
-        print('upgradeAlert: UpgradeCard: showDialog releaseNotes: $releaseNotes');
-      }
+      print('upgrader: UpgradeCard: showDialog releaseNotes: $releaseNotes');
     }
 
     Widget? notes;
@@ -132,7 +127,7 @@ class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(appMessages.message(upgradeAlertMessage.releaseNotes) ?? '',
+              Text(appMessages.message(UpgraderMessage.releaseNotes) ?? '',
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(
                 releaseNotes,
@@ -156,7 +151,7 @@ class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
             Text(message),
             Padding(
                 padding: const EdgeInsets.only(top: 15.0),
-                child: Text(appMessages.message(upgradeAlertMessage.prompt) ?? '')),
+                child: Text(appMessages.message(UpgraderMessage.prompt) ?? '')),
             if (notes != null) notes,
           ],
         ),
@@ -167,18 +162,18 @@ class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
 
   void forceRebuild() => setState(() {});
 
-  List<Widget> actions(UpgradeAlertMessages appMessages) {
-    final isBlocked = widget.upgrade.blocked();
+  List<Widget> actions(UpgraderMessages appMessages) {
+    final isBlocked = widget.upgrader.blocked();
     final showIgnore = isBlocked ? false : widget.showIgnore;
     final showLater = isBlocked ? false : widget.showLater;
     return <Widget>[
       if (showIgnore)
         TextButton(
             child: Text(
-                appMessages.message(upgradeAlertMessage.buttonTitleIgnore) ?? ''),
+                appMessages.message(UpgraderMessage.buttonTitleIgnore) ?? ''),
             onPressed: () {
               // Save the date/time as the last time alerted.
-              widget.upgrade.saveLastAlerted();
+              widget.upgrader.saveLastAlerted();
 
               onUserIgnored();
               forceRebuild();
@@ -186,20 +181,20 @@ class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
       if (showLater)
         TextButton(
             child: Text(
-                appMessages.message(upgradeAlertMessage.buttonTitleLater) ?? ''),
+                appMessages.message(UpgraderMessage.buttonTitleLater) ?? ''),
             onPressed: () {
               // Save the date/time as the last time alerted.
-              widget.upgrade.saveLastAlerted();
+              widget.upgrader.saveLastAlerted();
 
               onUserLater();
               forceRebuild();
             }),
       TextButton(
           child: Text(
-              appMessages.message(upgradeAlertMessage.buttonTitleUpdate) ?? ''),
+              appMessages.message(UpgraderMessage.buttonTitleUpdate) ?? ''),
           onPressed: () {
             // Save the date/time as the last time alerted.
-            widget.upgrade.saveLastAlerted();
+            widget.upgrader.saveLastAlerted();
 
             onUserUpdated();
           }),
@@ -208,30 +203,26 @@ class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
 
   bool get shouldDisplayReleaseNotes =>
       widget.showReleaseNotes &&
-      (widget.upgrade.releaseNotes?.isNotEmpty ?? false);
+      (widget.upgrader.releaseNotes?.isNotEmpty ?? false);
 
   void onUserIgnored() {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: button tapped: ignore');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: button tapped: ignore');
     }
 
     // If this callback has been provided, call it.
     final doProcess = widget.onIgnore?.call() ?? true;
 
     if (doProcess) {
-      widget.upgrade.saveIgnored();
+      widget.upgrader.saveIgnored();
     }
 
     forceRebuild();
   }
 
   void onUserLater() {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: button tapped: later');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: button tapped: later');
     }
 
     // If this callback has been provided, call it.
@@ -241,17 +232,15 @@ class UpgradeNewVersionCardState extends State<UpgradeNewVersionCard> {
   }
 
   void onUserUpdated() {
-    if (widget.upgrade.debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: button tapped: update now');
-      }
+    if (widget.upgrader.state.debugLogging) {
+      print('upgrader: button tapped: update now');
     }
 
     // If this callback has been provided, call it.
     final doProcess = widget.onUpdate?.call() ?? true;
 
     if (doProcess) {
-      widget.upgrade.sendUserToAppStore();
+      widget.upgrader.sendUserToAppStore();
     }
 
     forceRebuild();

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:version/version.dart';
 import 'package:http/http.dart' as http;
 
@@ -18,6 +17,9 @@ class ITunesSearchAPI {
   /// Provide an HTTP Client that can be replaced for mock testing.
   http.Client? client = http.Client();
 
+  /// Provide the HTTP headers used by [client].
+  Map<String, String>? clientHeaders;
+
   /// Enable print statements for debugging.
   bool debugLogging = false;
 
@@ -26,35 +28,34 @@ class ITunesSearchAPI {
   /// ```lookupURLByBundleId('com.google.Maps');```
   /// ```lookupURLByBundleId('com.google.Maps', country: 'FR');```
   Future<Map?> lookupByBundleId(String bundleId,
-      {String? country = 'US', bool useCacheBuster = true}) async {
+      {String? country = 'US',
+      String? language = 'en',
+      bool useCacheBuster = true}) async {
     assert(bundleId.isNotEmpty);
     if (bundleId.isEmpty) {
       return null;
     }
 
     final url = lookupURLByBundleId(bundleId,
-        country: country ??= '', useCacheBuster: useCacheBuster)!;
+        country: country ?? '',
+        language: language ?? '',
+        useCacheBuster: useCacheBuster)!;
     if (debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: download: $url');
-      }
+      print('upgrader: download: $url');
     }
 
     try {
-      final response = await client!.get(Uri.parse(url));
+      final response =
+          await client!.get(Uri.parse(url), headers: clientHeaders);
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgradeAlert: response statusCode: ${response.statusCode}');
-        }
+        print('upgrader: response statusCode: ${response.statusCode}');
       }
 
       final decodedResults = _decodeResults(response.body);
       return decodedResults;
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgradeAlert: lookupByBundleId exception: $e');
-        }
+        print('upgrader: lookupByBundleId exception: $e');
       }
       return null;
     }
@@ -73,19 +74,16 @@ class ITunesSearchAPI {
     final url =
         lookupURLById(id, country: country, useCacheBuster: useCacheBuster)!;
     if (debugLogging) {
-      if (kDebugMode) {
-        print('upgradeAlert: download: $url');
-      }
+      print('upgrader: download: $url');
     }
     try {
-      final response = await client!.get(Uri.parse(url));
+      final response =
+          await client!.get(Uri.parse(url), headers: clientHeaders);
       final decodedResults = _decodeResults(response.body);
       return decodedResults;
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgradeAlert: lookupById exception: $e');
-        }
+        print('upgrader: lookupById exception: $e');
       }
       return null;
     }
@@ -96,14 +94,18 @@ class ITunesSearchAPI {
   /// ```lookupURLByBundleId('com.google.Maps');```
   /// ```lookupURLByBundleId('com.google.Maps', country: 'FR');```
   String? lookupURLByBundleId(String bundleId,
-      {String country = 'US', bool useCacheBuster = true}) {
+      {String country = 'US',
+      String language = 'en',
+      bool useCacheBuster = true}) {
     if (bundleId.isEmpty) {
       return null;
     }
 
-    return lookupURLByQSP(
-        {'bundleId': bundleId, 'country': country.toUpperCase()},
-        useCacheBuster: useCacheBuster);
+    return lookupURLByQSP({
+      'bundleId': bundleId,
+      'country': country.toUpperCase(),
+      'lang': language
+    }, useCacheBuster: useCacheBuster);
   }
 
   /// Look up URL by id.
@@ -144,11 +146,10 @@ class ITunesSearchAPI {
         final resultCount = decodedResults['resultCount'];
         if (resultCount == 0) {
           if (debugLogging) {
-            if (kDebugMode) {
-              print(
-                'upgrade.ITunesSearchAPI: results are empty: $decodedResults');
-            }
+            print(
+                'upgrader.ITunesSearchAPI: results are empty: $decodedResults');
           }
+          return null;
         }
         return decodedResults;
       }
@@ -165,9 +166,7 @@ extension ITunesResults on ITunesSearchAPI {
       value = response['results'][0]['bundleId'];
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgrade.ITunesResults.bundleId: $e');
-        }
+        print('upgrader.ITunesResults.bundleId: $e');
       }
     }
     return value;
@@ -180,9 +179,7 @@ extension ITunesResults on ITunesSearchAPI {
       value = response['results'][0]['currency'];
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgrade.ITunesResults.currency: $e');
-        }
+        print('upgrader.ITunesResults.currency: $e');
       }
     }
     return value;
@@ -195,9 +192,7 @@ extension ITunesResults on ITunesSearchAPI {
       value = response['results'][0]['description'];
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgrade.ITunesResults.description: $e');
-        }
+        print('upgrader.ITunesResults.description: $e');
       }
     }
     return value;
@@ -223,19 +218,15 @@ extension ITunesResults on ITunesSearchAPI {
             version = Version.parse(mav);
           } on Exception catch (e) {
             if (debugLogging) {
-              if (kDebugMode) {
-                print(
-                  'upgradeAlert: ITunesResults.minAppVersion: $tagName error: $e');
-              }
+              print(
+                  'upgrader: ITunesResults.minAppVersion: $tagName error: $e');
             }
           }
         }
       }
     } on Exception catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgrade.ITunesResults.minAppVersion : $e');
-        }
+        print('upgrader.ITunesResults.minAppVersion : $e');
       }
     }
     return version;
@@ -248,9 +239,7 @@ extension ITunesResults on ITunesSearchAPI {
       value = response['results'][0]['releaseNotes'];
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgrade.ITunesResults.releaseNotes: $e');
-        }
+        print('upgrader.ITunesResults.releaseNotes: $e');
       }
     }
     return value;
@@ -263,9 +252,7 @@ extension ITunesResults on ITunesSearchAPI {
       value = response['results'][0]['trackViewUrl'];
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgrade.ITunesResults.trackViewUrl: $e');
-        }
+        print('upgrader.ITunesResults.trackViewUrl: $e');
       }
     }
     return value;
@@ -278,9 +265,7 @@ extension ITunesResults on ITunesSearchAPI {
       value = response['results'][0]['version'];
     } catch (e) {
       if (debugLogging) {
-        if (kDebugMode) {
-          print('upgrade.ITunesResults.version: $e');
-        }
+        print('upgrader.ITunesResults.version: $e');
       }
     }
     return value;

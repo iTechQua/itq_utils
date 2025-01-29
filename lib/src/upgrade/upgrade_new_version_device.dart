@@ -3,22 +3,22 @@ import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
 import 'package:version/version.dart';
 
 
-class UpgradeDevice {
-  Future<String?> getOsVersionString(UpgradeOS upgradeOS) async {
+class UpgraderDevice {
+  Future<String?> getOsVersionString(UpgraderOS upgraderOS) async {
     final deviceInfo = DeviceInfoPlugin();
     String? osVersionString;
-    if (upgradeOS.isAndroid) {
+    if (upgraderOS.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
       osVersionString = androidInfo.version.baseOS;
-    } else if (upgradeOS.isIOS) {
+    } else if (upgraderOS.isIOS) {
       final iosInfo = await deviceInfo.iosInfo;
       osVersionString = iosInfo.systemVersion;
-    } else if (upgradeOS.isFuchsia) {
+    } else if (upgraderOS.isFuchsia) {
       osVersionString = '';
-    } else if (upgradeOS.isLinux) {
+    } else if (upgraderOS.isLinux) {
       final info = await deviceInfo.linuxInfo;
       osVersionString = info.version;
-    } else if (upgradeOS.isMacOS) {
+    } else if (upgraderOS.isMacOS) {
       final info = await deviceInfo.macOsInfo;
       final release = info.osRelease;
 
@@ -30,9 +30,9 @@ class UpgradeDevice {
       final match = regExp.firstMatch(release);
       final version = match?.namedGroup('version');
       osVersionString = version;
-    } else if (upgradeOS.isWeb) {
+    } else if (upgraderOS.isWeb) {
       osVersionString = '0.0.0';
-    } else if (upgradeOS.isWindows) {
+    } else if (upgraderOS.isWindows) {
       final info = await deviceInfo.windowsInfo;
       osVersionString = info.displayVersion;
     }
@@ -48,12 +48,12 @@ class UpgradeDevice {
   }
 }
 
-class MockUpgradeDevice extends UpgradeDevice {
-  MockUpgradeDevice({this.osVersionString = ''});
+class MockUpgraderDevice extends UpgraderDevice {
+  MockUpgraderDevice({this.osVersionString = ''});
 
   final String osVersionString;
 
   @override
-  Future<String?> getOsVersionString(UpgradeOS upgradeOS) async =>
+  Future<String?> getOsVersionString(UpgraderOS upgraderOS) async =>
       osVersionString;
 }

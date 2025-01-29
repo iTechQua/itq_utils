@@ -1,114 +1,111 @@
-// ignore_for_file: constant_identifier_names
-
 import 'dart:convert' show utf8;
 
-import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:itq_utils/src/upgrade/upgrade_new_version_device.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
-import 'package:http/http.dart' as http;
 import 'package:version/version.dart';
 import 'package:xml/xml.dart';
 
 
-/// The [AppCast] class is used to download an Appcast, based on the Sparkle
+/// The [Appcast] class is used to download an Appcast, based on the Sparkle
+/// framework by Andy Matuschak.
 /// Documentation: https://sparkle-project.org/documentation/publishing/
 /// An Appcast is an RSS feed with one channel that has a collection of items
 /// that each describe one app version.
-class AppCast {
+class Appcast {
   /// Provide an HTTP Client that can be replaced during testing.
   final http.Client client;
 
-  /// Provide [UpgradeOS] that can be replaced during testing.
-  final UpgradeOS upgradeAlertOS;
+  /// Provide the HTTP headers used by [client].
+  final Map<String, String>? clientHeaders;
 
-  /// Provide [UpgradeDevice] that ca be replaced during testing.
-  final UpgradeDevice upgradeAlertDevice;
+  /// Provide [UpgraderOS] that can be replaced during testing.
+  final UpgraderOS upgraderOS;
 
-  AppCast({
+  /// Provide [UpgraderDevice] that ca be replaced during testing.
+  final UpgraderDevice upgraderDevice;
+
+  Appcast({
     http.Client? client,
-    UpgradeOS? upgradeAlertOS,
-    UpgradeDevice? upgradeAlertDevice,
+    this.clientHeaders,
+    UpgraderOS? upgraderOS,
+    UpgraderDevice? upgraderDevice,
   })  : client = client ?? http.Client(),
-        upgradeAlertOS = upgradeAlertOS ?? UpgradeOS(),
-        upgradeAlertDevice = upgradeAlertDevice ?? UpgradeDevice();
+        upgraderOS = upgraderOS ?? UpgraderOS(),
+        upgraderDevice = upgraderDevice ?? UpgraderDevice();
 
   /// The items in the Appcast.
-  List<AppCastItem>? items;
+  List<AppcastItem>? items;
 
   String? osVersionString;
 
   /// Returns the latest critical item in the Appcast.
-  AppCastItem? bestCriticalItem() {
+  AppcastItem? bestCriticalItem() {
     if (items == null) {
       return null;
     }
 
-    AppCastItem? bestItem;
-    for (var item in items!) {
+    AppcastItem? bestItem;
+    items!.forEach((AppcastItem item) {
       if (item.hostSupportsItem(
               osVersion: osVersionString,
-              currentPlatform: upgradeAlertOS.current) &&
+              currentPlatform: upgraderOS.current) &&
           item.isCriticalUpdate) {
         if (bestItem == null) {
           bestItem = item;
         } else {
           try {
             final itemVersion = Version.parse(item.versionString!);
-            final bestItemVersion = Version.parse(bestItem.versionString!);
+            final bestItemVersion = Version.parse(bestItem!.versionString!);
             if (itemVersion > bestItemVersion) {
               bestItem = item;
             }
           } on Exception catch (e) {
-            if (kDebugMode) {
-              print('upgradeAlert: criticalUpdateItem invalid version: $e');
-            }
+            print('upgrader: criticalUpdateItem invalid version: $e');
           }
         }
       }
-    }
+    });
     return bestItem;
   }
 
   /// Returns the latest item in the Appcast based on OS, OS version, and app
   /// version.
-  AppCastItem? bestItem() {
+  AppcastItem? bestItem() {
     if (items == null) {
       return null;
     }
 
-    AppCastItem? bestItem;
-    for (var item in items!) {
+    AppcastItem? bestItem;
+    items!.forEach((AppcastItem item) {
       if (item.hostSupportsItem(
-          osVersion: osVersionString, currentPlatform: upgradeAlertOS.current)) {
+          osVersion: osVersionString, currentPlatform: upgraderOS.current)) {
         if (bestItem == null) {
           bestItem = item;
         } else {
           try {
             final itemVersion = Version.parse(item.versionString!);
-            final bestItemVersion = Version.parse(bestItem.versionString!);
+            final bestItemVersion = Version.parse(bestItem!.versionString!);
             if (itemVersion > bestItemVersion) {
               bestItem = item;
             }
           } on Exception catch (e) {
-            if (kDebugMode) {
-              print('upgradeAlert: bestItem invalid version: $e');
-            }
+            print('upgrader: bestItem invalid version: $e');
           }
         }
       }
-    }
+    });
     return bestItem;
   }
 
   /// Download the Appcast from [appCastURL].
-  Future<List<AppCastItem>?> parseAppCastItemsFromUri(String appCastURL) async {
+  Future<List<AppcastItem>?> parseAppcastItemsFromUri(String appCastURL) async {
     http.Response response;
     try {
-      response = await client.get(Uri.parse(appCastURL));
+      response =
+          await client.get(Uri.parse(appCastURL), headers: clientHeaders);
     } catch (e) {
-      if (kDebugMode) {
-        print('upgradeAlert: parseAppcastItemsFromUri exception: $e');
-      }
+      print('upgrader: parseAppcastItemsFromUri exception: $e');
       return null;
     }
     final contents = utf8.decode(response.bodyBytes);
@@ -116,12 +113,12 @@ class AppCast {
   }
 
   /// Parse the Appcast from XML string.
-  Future<List<AppCastItem>?> parseAppcastItems(String contents) async {
-    osVersionString = await upgradeAlertDevice.getOsVersionString(upgradeAlertOS);
+  Future<List<AppcastItem>?> parseAppcastItems(String contents) async {
+    osVersionString = await upgraderDevice.getOsVersionString(upgraderOS);
     return parseItemsFromXMLString(contents);
   }
 
-  List<AppCastItem>? parseItemsFromXMLString(String xmlString) {
+  List<AppcastItem>? parseItemsFromXMLString(String xmlString) {
     items = null;
 
     if (xmlString.isEmpty) {
@@ -135,7 +132,7 @@ class AppCast {
       // Ensure the root element is valid
       document.rootElement;
 
-      var localItems = <AppCastItem>[];
+      var localItems = <AppcastItem>[];
 
       // look for all item elements in the rss/channel
       document.findAllElements('item').forEach((XmlElement itemElement) {
@@ -152,46 +149,46 @@ class AppCast {
         String? itemVersion;
         String? enclosureVersion;
 
-        for (var childNode in itemElement.children) {
+        itemElement.children.forEach((XmlNode childNode) {
           if (childNode is XmlElement) {
             final name = childNode.name.toString();
-            if (name == AppCastConstants.ElementTitle) {
+            if (name == AppcastConstants.ElementTitle) {
               title = childNode.innerText;
-            } else if (name == AppCastConstants.ElementDescription) {
+            } else if (name == AppcastConstants.ElementDescription) {
               itemDescription = childNode.innerText;
-            } else if (name == AppCastConstants.ElementEnclosure) {
-              for (var attribute in childNode.attributes) {
+            } else if (name == AppcastConstants.ElementEnclosure) {
+              childNode.attributes.forEach((XmlAttribute attribute) {
                 if (attribute.name.toString() ==
-                    AppCastConstants.AttributeVersion) {
+                    AppcastConstants.AttributeVersion) {
                   enclosureVersion = attribute.value;
                 } else if (attribute.name.toString() ==
-                    AppCastConstants.AttributeOsType) {
+                    AppcastConstants.AttributeOsType) {
                   osString = attribute.value;
                 } else if (attribute.name.toString() ==
-                    AppCastConstants.AttributeURL) {
+                    AppcastConstants.AttributeURL) {
                   fileURL = attribute.value;
                 }
-              }
-            } else if (name == AppCastConstants.ElementMaximumSystemVersion) {
+              });
+            } else if (name == AppcastConstants.ElementMaximumSystemVersion) {
               maximumSystemVersion = childNode.innerText;
-            } else if (name == AppCastConstants.ElementMinimumSystemVersion) {
+            } else if (name == AppcastConstants.ElementMinimumSystemVersion) {
               minimumSystemVersion = childNode.innerText;
-            } else if (name == AppCastConstants.ElementPubDate) {
+            } else if (name == AppcastConstants.ElementPubDate) {
               dateString = childNode.innerText;
-            } else if (name == AppCastConstants.ElementReleaseNotesLink) {
+            } else if (name == AppcastConstants.ElementReleaseNotesLink) {
               releaseNotesLink = childNode.innerText;
-            } else if (name == AppCastConstants.ElementTags) {
-              for (var tagChildNode in childNode.children) {
+            } else if (name == AppcastConstants.ElementTags) {
+              childNode.children.forEach((XmlNode tagChildNode) {
                 if (tagChildNode is XmlElement) {
                   final tagName = tagChildNode.name.toString();
                   tags.add(tagName);
                 }
-              }
-            } else if (name == AppCastConstants.AttributeVersion) {
+              });
+            } else if (name == AppcastConstants.AttributeVersion) {
               itemVersion = childNode.innerText;
             }
           }
-        }
+        });
 
         if (itemVersion == null) {
           newVersion = enclosureVersion;
@@ -204,7 +201,7 @@ class AppCast {
           return;
         }
 
-        final item = AppCastItem(
+        final item = AppcastItem(
           title: title,
           itemDescription: itemDescription,
           dateString: dateString,
@@ -221,16 +218,14 @@ class AppCast {
 
       items = localItems;
     } catch (e) {
-      if (kDebugMode) {
-        print('upgradeAlert: parseItemsFromXMLString exception: $e');
-      }
+      print('upgrader: parseItemsFromXMLString exception: $e');
     }
 
     return items;
   }
 }
 
-class AppCastItem {
+class AppcastItem {
   final String? title;
   final String? dateString;
   final String? itemDescription;
@@ -245,7 +240,7 @@ class AppCastItem {
   final String? infoURL;
   final List<String>? tags;
 
-  AppCastItem({
+  AppcastItem({
     this.title,
     this.dateString,
     this.itemDescription,
@@ -261,11 +256,11 @@ class AppCastItem {
     this.tags,
   });
 
-  /// Returns true if the tags ([AppCastConstants.ElementTags]) contains
-  /// critical update ([AppCastConstants.ElementCriticalUpdate]).
+  /// Returns true if the tags ([AppcastConstants.ElementTags]) contains
+  /// critical update ([AppcastConstants.ElementCriticalUpdate]).
   bool get isCriticalUpdate => tags == null
       ? false
-      : tags!.contains(AppCastConstants.ElementCriticalUpdate);
+      : tags!.contains(AppcastConstants.ElementCriticalUpdate);
 
   /// Does the host support this item? If so is [osVersion] supported?
   bool hostSupportsItem({String? osVersion, required String currentPlatform}) {
@@ -282,9 +277,7 @@ class AppCastItem {
       try {
         osVersionValue = Version.parse(osVersion);
       } catch (e) {
-        if (kDebugMode) {
-          print('upgradeAlert: hostSupportsItem invalid osVersion: $e');
-        }
+        print('upgrader: hostSupportsItem invalid osVersion: $e');
         return false;
       }
       if (maximumSystemVersion != null) {
@@ -294,9 +287,7 @@ class AppCastItem {
             supported = false;
           }
         } on Exception catch (e) {
-          if (kDebugMode) {
-            print('upgradeAlert: hostSupportsItem invalid maximumSystemVersion: $e');
-          }
+          print('upgrader: hostSupportsItem invalid maximumSystemVersion: $e');
         }
       }
       if (supported && minimumSystemVersion != null) {
@@ -306,9 +297,7 @@ class AppCastItem {
             supported = false;
           }
         } on Exception catch (e) {
-          if (kDebugMode) {
-            print('upgradeAlert: hostSupportsItem invalid minimumSystemVersion: $e');
-          }
+          print('upgrader: hostSupportsItem invalid minimumSystemVersion: $e');
         }
       }
     }
@@ -318,7 +307,7 @@ class AppCastItem {
 
 /// These constants taken from:
 /// https://github.com/sparkle-project/Sparkle/blob/master/Sparkle/SUConstants.m
-class AppCastConstants {
+class AppcastConstants {
   static const String AttributeDeltaFrom = 'sparkle:deltaFrom';
   static const String AttributeDSASignature = 'sparkle:dsaSignature';
   static const String AttributeEDSignature = 'sparkle:edSignature';
