@@ -1,5 +1,3 @@
-// Copyright (c) 2024 Larry Aasen. All rights reserved.
-
 import 'package:http/http.dart' as http;
 import 'package:itq_utils/src/upgrade/upgrade_new_version_device.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_info.dart';

@@ -1,5 +1,6 @@
-import 'dart:io';
+// generic_datatable.dart
 
+import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,22 +14,24 @@ import 'package:universal_html/html.dart' as html;
 class GenericDataTable<T> extends StatefulWidget {
   const GenericDataTable({
     super.key,
+    this.headerColor = const Color(0xFF2196F3),
+    this.gridLineColor,
     required this.widthMode,
     required this.tableHeaderDataMap,
     required this.tableRowDataList,
     required this.toMakeTableMapFunction,
     required this.fileName,
     required this.actionBuilder,
-    this.height,
     this.pageSize = 10,
   });
 
-  final double? height;
   final Map<String, dynamic> tableHeaderDataMap;
   final List<T> tableRowDataList;
   final Map<String, dynamic> Function(T) toMakeTableMapFunction;
   final Widget Function(T rowData) actionBuilder;
   final int pageSize;
+  final Color headerColor;
+  final Color? gridLineColor;
   final ColumnWidthMode widthMode;
   final String fileName;
 
@@ -51,34 +54,108 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
     _searchController = TextEditingController();
     _filteredData = widget.tableRowDataList;
     _pageSize = widget.pageSize;
+    _initializeTableHeaders();
+    _updateTableData();
+  }
 
+  Widget _buildDataTable(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return SizedBox(
+          width: constraints.maxWidth,
+          child: SfDataGridTheme(
+            data: SfDataGridThemeData(
+              headerColor: const Color(0xFF2196F3),
+              gridLineColor: widget.gridLineColor ?? Colors.grey.shade300,
+              gridLineStrokeWidth: 1,
+            ),
+            child: _filteredData.isEmpty
+                ? Stack(
+              children: [
+                SfDataGrid(
+                  source: GenericDataSource([]),
+                  columns: _tableHeader,
+                  rowHeight: 45,
+                  headerRowHeight: 45,
+                  gridLinesVisibility: GridLinesVisibility.both,
+                  headerGridLinesVisibility: GridLinesVisibility.both,
+                  columnWidthMode: ColumnWidthMode.fill,
+                ),
+                Positioned.fill(
+                  top: 45, // Height of header
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Colors.grey.shade300),
+                        left: BorderSide(color: Colors.grey.shade300),
+                        right: BorderSide(color: Colors.grey.shade300),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _searchQuery.isEmpty
+                            ? 'No data available'
+                            : 'No matching records found',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+                : SfDataGrid(
+              source: GenericDataSource(_tableRowData),
+              columns: _tableHeader,
+              rowHeight: 45,
+              headerRowHeight: 45,
+              gridLinesVisibility: GridLinesVisibility.both,
+              headerGridLinesVisibility: GridLinesVisibility.both,
+              columnWidthMode: ColumnWidthMode.fill,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+// Also update the _initializeTableHeaders method to use proportional widths
+  void _initializeTableHeaders() {
     _tableHeader = <GridColumn>[
       GridColumn(
         columnName: 'ID',
+        columnWidthMode: ColumnWidthMode.fill,
+        minimumWidth: 60,
+        maximumWidth: 80,
         label: Container(
-          padding: const EdgeInsets.all(8),
-          alignment: Alignment.center,
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 16),
           child: const Text(
             'ID',
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
               color: Colors.white,
             ),
           ),
         ),
       ),
       ...widget.tableHeaderDataMap.keys.map((String key) {
+        double minimumWidth = 100;
+        double maximumWidth = double.infinity;
+
         return GridColumn(
           columnName: key,
+          columnWidthMode: ColumnWidthMode.fill,
+          minimumWidth: minimumWidth,
+          maximumWidth: maximumWidth,
           label: Container(
-            padding: const EdgeInsets.all(8),
-            alignment: Alignment.center,
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 16),
             child: Text(
               key,
               style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
             ),
@@ -87,40 +164,42 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
       }),
       GridColumn(
         columnName: 'Action',
+        columnWidthMode: ColumnWidthMode.fill,
+        minimumWidth: 100,
+        maximumWidth: 120,
         label: Container(
-          padding: const EdgeInsets.all(8),
-          alignment: Alignment.center,
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 16),
           child: const Text(
             'Action',
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
               color: Colors.white,
             ),
           ),
         ),
       ),
     ];
-
-    _updateTableData();
   }
 
-  @override
-  void didUpdateWidget(covariant GenericDataTable<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.tableRowDataList != oldWidget.tableRowDataList) {
-      _filteredData = widget.tableRowDataList;
-      _updateTableData();
-    }
-  }
 
   void _updateTableData() {
+    if (_filteredData.isEmpty) {
+      _tableRowData = [];
+      return;
+    }
+
     final int startIndex = _currentPage * _pageSize;
-    final int endIndex = startIndex + _pageSize;
-    final List<T> currentPageData = _filteredData.sublist(
-      startIndex,
-      endIndex.clamp(0, _filteredData.length),
-    );
+    final int endIndex =
+    (startIndex + _pageSize).clamp(0, _filteredData.length);
+
+    if (startIndex >= _filteredData.length) {
+      _currentPage = (_filteredData.length - 1) ~/ _pageSize;
+      return _updateTableData();
+    }
+
+    final List<T> currentPageData = _filteredData.sublist(startIndex, endIndex);
 
     _tableRowData = currentPageData.asMap().entries.map((entry) {
       final int index = entry.key;
@@ -135,7 +214,7 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
               .map((MapEntry<String, dynamic> entry) {
             return DataGridCell<dynamic>(
               columnName: entry.key,
-              value: entry.value,
+              value: entry.value ?? '',
             );
           }),
           DataGridCell<Widget>(
@@ -147,23 +226,25 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
     }).toList();
   }
 
-  void _changePage(int page) {
-    setState(() {
-      _currentPage = page;
-      _updateTableData();
-    });
-  }
-
   void _filterData(String query) {
     setState(() {
       _searchQuery = query.toLowerCase();
       _filteredData = widget.tableRowDataList.where((item) {
         final map = widget.toMakeTableMapFunction(item);
         return map.values.any(
-              (value) => value.toString().toLowerCase().contains(_searchQuery),
+              (value) =>
+          value?.toString().toLowerCase().contains(_searchQuery) ?? false,
         );
       }).toList();
       _currentPage = 0;
+      _updateTableData();
+    });
+  }
+
+  void _changePage(int page) {
+    if (page < 0 || page * _pageSize >= _filteredData.length) return;
+    setState(() {
+      _currentPage = page;
       _updateTableData();
     });
   }
@@ -189,7 +270,9 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
 
         final rowData = widget.toMakeTableMapFunction(_filteredData[i]);
         for (final value in rowData.values) {
-          sheet.getRangeByIndex(i + 2, columnIndex).setValue(value.toString());
+          sheet
+              .getRangeByIndex(i + 2, columnIndex)
+              .setValue(value?.toString() ?? '');
           columnIndex++;
         }
       }
@@ -203,7 +286,7 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
 
-      await _saveFile(bytes, 'table_data.xlsx');
+      await _saveFile(bytes, '${widget.fileName}.xlsx');
     } catch (e) {
       _showErrorDialog('Export Error', e.toString());
     }
@@ -227,21 +310,6 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
         ),
       ];
 
-      final headerStyle = pw.TextStyle(
-        fontWeight: pw.FontWeight.bold,
-        color: PdfColors.white,
-        fontSize: 8,
-      );
-
-      const cellStyle = pw.TextStyle(
-        fontSize: 7,
-      );
-
-      final cellAlignments = {
-        0: pw.Alignment.center,
-        for (var i = 1; i < headers.length; i++) i: pw.Alignment.centerLeft,
-      };
-
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
@@ -251,25 +319,26 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
               headers: tableData[0],
               data: tableData.sublist(1),
               border: pw.TableBorder.all(),
-              headerStyle: headerStyle,
-              cellStyle: cellStyle,
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
               headerDecoration: const pw.BoxDecoration(
                 color: PdfColors.blue600,
               ),
               cellHeight: 25,
-              cellAlignments: cellAlignments,
-              oddRowDecoration: const pw.BoxDecoration(
-                color: PdfColors.grey200,
-              ),
+              cellAlignments: {
+                0: pw.Alignment.center,
+                for (var i = 1; i < headers.length; i++)
+                  i: pw.Alignment.centerLeft,
+              },
             ),
           ],
         ),
       );
 
       final bytes = await pdf.save();
-      final fileName = 'table_data_${DateTime.now().millisecondsSinceEpoch}.pdf';
-
-      await _saveFile(bytes, fileName);
+      await _saveFile(bytes, '${widget.fileName}.pdf');
     } catch (e) {
       _showErrorDialog('PDF Export Error', e.toString());
     }
@@ -288,32 +357,19 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
   }
 
   Future<void> _saveFileWeb(List<int> bytes, String fileName) async {
-    final blob = html.Blob([bytes], 'application/pdf');
+    final blob = html.Blob([bytes]);
     final url = html.Url.createObjectUrlFromBlob(blob);
-
-    final anchor = html.AnchorElement(href: url)
+    html.AnchorElement(href: url)
       ..setAttribute('download', fileName)
-      ..style.display = 'none';
-
-    html.document.body?.append(anchor);
-    anchor.click();
+      ..click();
     html.Url.revokeObjectUrl(url);
   }
 
   Future<void> _saveFileNative(List<int> bytes, String fileName) async {
-    final directory = Platform.isWindows || Platform.isLinux || Platform.isMacOS
-        ? await getDownloadsDirectory()
-        : await getApplicationDocumentsDirectory();
-
-    if (directory == null) {
-      throw Exception('Unable to access system directory');
-    }
-
-    final filePath = '${directory.path}${Platform.pathSeparator}$fileName';
-    final file = File(filePath);
-    await file.writeAsBytes(bytes, flush: true);
-
-    _showSuccessDialog(filePath, bytes.length);
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$fileName');
+    await file.writeAsBytes(bytes);
+    _showSuccessDialog(file.path, bytes.length);
   }
 
   void _showErrorDialog(String title, String message) {
@@ -321,9 +377,7 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
-        content: SingleChildScrollView(
-          child: Text(message),
-        ),
+        content: SingleChildScrollView(child: Text(message)),
         actions: [
           TextButton(
             child: const Text('OK'),
@@ -346,7 +400,6 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
             const Text('File saved successfully!'),
             const SizedBox(height: 8),
             Text('Location: $filePath'),
-            const SizedBox(height: 4),
             Text('Size: ${(fileSize / 1024).toStringAsFixed(2)} KB'),
           ],
         ),
@@ -361,148 +414,200 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
   }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    final int totalPages = (_filteredData.length / _pageSize).ceil();
+    final int currentEntryStart =
+    _filteredData.isEmpty ? 0 : (_currentPage * _pageSize) + 1;
+    final int currentEntryEnd =
+    (_currentPage + 1) * _pageSize > _filteredData.length
+        ? _filteredData.length
+        : (_currentPage + 1) * _pageSize;
+
+    return Column(
+      children: <Widget>[
+        _buildTopBar(),
+        _buildDataTable(context),
+        if (_filteredData.isNotEmpty)
+          _buildPagination(currentEntryStart, currentEntryEnd, totalPages),
+      ],
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              children: [
+                Theme(
+                  data: Theme.of(context).copyWith(
+                    hoverColor: Colors.transparent,
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: ButtonTheme(
+                      alignedDropdown: true,
+                      child: DropdownButton<int>(
+                        value: _pageSize,
+                        icon: const Icon(Icons.keyboard_arrow_down),
+                        iconSize: 20,
+                        style: const TextStyle(
+                          color: Color(0xFF475569),
+                          fontSize: 14,
+                        ),
+                        selectedItemBuilder: (BuildContext context) {
+                          return [5, 10, 20, 50].map<Widget>((int value) {
+                            return Container(
+                              padding: const EdgeInsets.only(right: 8),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '$value',
+                                style: const TextStyle(
+                                  color: Color(0xFF475569),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          }).toList();
+                        },
+                        items: [5, 10, 20, 50].map<DropdownMenuItem<int>>((int value) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text('$value'),
+                          );
+                        }).toList(),
+                        onChanged: (size) {
+                          if (size != null) {
+                            setState(() {
+                              _pageSize = size;
+                              _currentPage = 0;
+                              _updateTableData();
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          PopupMenuButton<String>(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6D28D9),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'Export',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'excel',
+                child: const Text('Export to Excel'),
+                onTap: _exportToExcel,
+              ),
+              PopupMenuItem(
+                value: 'pdf',
+                child: const Text('Export to PDF'),
+                onTap: _exportToPdf,
+              ),
+            ],
+          ),
+          const Spacer(),
+          SizedBox(
+            width: 250,
+            child: TextField(
+              controller: _searchController,
+              onChanged: _filterData,
+              decoration: InputDecoration(
+                hintText: 'Search',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPagination(
+      int currentEntryStart, int currentEntryEnd, int totalPages) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing $currentEntryStart to $currentEntryEnd of ${_filteredData.length} entries',
+            style: const TextStyle(fontSize: 14),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.first_page),
+                onPressed: _currentPage > 0 ? () => _changePage(0) : null,
+                tooltip: 'First Page',
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                onPressed: _currentPage > 0
+                    ? () => _changePage(_currentPage - 1)
+                    : null,
+                tooltip: 'Previous Page',
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  'Page ${_currentPage + 1} of $totalPages',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                onPressed: _currentPage < totalPages - 1
+                    ? () => _changePage(_currentPage + 1)
+                    : null,
+                tooltip: 'Next Page',
+              ),
+              IconButton(
+                icon: const Icon(Icons.last_page),
+                onPressed: _currentPage < totalPages - 1
+                    ? () => _changePage(totalPages - 1)
+                    : null,
+                tooltip: 'Last Page',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        // Top bar with Search, Export and Page Size Selector
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            children: [
-              // Page Size Selector
-              DropdownButton<int>(
-                value: _pageSize,
-                items: [5, 10, 20, 50]
-                    .map((size) => DropdownMenuItem(
-                  value: size,
-                  child: Text('$size entries'),
-                ))
-                    .toList(),
-                onChanged: (size) {
-                  if (size != null) {
-                    setState(() {
-                      _pageSize = size;
-                      _currentPage = 0;
-                      _updateTableData();
-                    });
-                  }
-                },
-              ),
-              const SizedBox(width: 10),
-              // Export Button
-              PopupMenuButton<String>(
-                child: ElevatedButton(
-                  child: const Text('Export'),
-                  onPressed: null,
-                ),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'excel',
-                    child: const Text('Export to Excel'),
-                    onTap: _exportToExcel,
-                  ),
-                  PopupMenuItem(
-                    value: 'pdf',
-                    child: const Text('Export to PDF'),
-                    onTap: _exportToPdf,
-                  ),
-                ],
-              ),
-              const Spacer(),
-              // Search Field
-              SizedBox(
-                width: 250,
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _filterData,
-                  decoration: InputDecoration(
-                    hintText: 'Search',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Table
-        LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final double tableWidth = _tableHeader.length * 150.0;
-
-            return SizedBox(
-              height: widget.height ?? MediaQuery.of(context).size.height * 0.6,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: constraints.maxWidth,
-                    maxWidth: tableWidth > constraints.maxWidth
-                        ? tableWidth
-                        : constraints.maxWidth,
-                  ),
-                  child: SfDataGridTheme(
-                    data: SfDataGridThemeData(
-                      headerColor: Colors.blue,
-                      gridLineColor: Colors.grey,
-                      gridLineStrokeWidth: 0.1,
-                    ),
-                    child: SfDataGrid(
-                      isScrollbarAlwaysShown: true,
-                      columnWidthMode: widget.widthMode,
-                      source: GenericDataSource(_tableRowData),
-                      columns: _tableHeader,
-                      gridLinesVisibility: GridLinesVisibility.both,
-                      headerGridLinesVisibility: GridLinesVisibility.both,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        // Pagination and Footer
-        Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Showing entries info
-              Text(
-                'Showing ${(_currentPage * _pageSize) + 1} to ${((_currentPage + 1) * _pageSize).clamp(1, _filteredData.length)} of ${_filteredData.length} entries',
-              ),
-              // Pagination
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: _currentPage > 0
-                        ? () => _changePage(_currentPage - 1)
-                        : null,
-                  ),
-                  Text('Page ${_currentPage + 1}'),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed:
-                    (_currentPage + 1) * _pageSize < _filteredData.length
-                        ? () => _changePage(_currentPage + 1)
-                        : null,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }
 
@@ -519,17 +624,51 @@ class GenericDataSource extends DataGridSource {
     return DataGridRowAdapter(
       cells: row.getCells().map<Widget>((DataGridCell cell) {
         if (cell.value is Widget) {
-          return cell.value as Widget;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            alignment: Alignment.centerLeft,
+            child: cell.value as Widget,
+          );
         }
         return Container(
-          padding: const EdgeInsets.all(8),
-          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.centerLeft,
           child: Text(
-            cell.value.toString(),
-            style: const TextStyle(fontSize: 13),
+            cell.value?.toString() ?? '',
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         );
       }).toList(),
     );
+  }
+
+  @override
+  int compare(DataGridRow? a, DataGridRow? b, SortColumnDetails sortColumn) {
+    if (a == null || b == null) return 0;
+
+    final aValue = a
+        .getCells()
+        .firstWhere((cell) => cell.columnName == sortColumn.name)
+        .value;
+    final bValue = b
+        .getCells()
+        .firstWhere((cell) => cell.columnName == sortColumn.name)
+        .value;
+
+    if (aValue == null || bValue == null) return 0;
+
+    if (aValue is num && bValue is num) {
+      return sortColumn.sortDirection == DataGridSortDirection.ascending
+          ? aValue.compareTo(bValue)
+          : bValue.compareTo(aValue);
+    }
+
+    return sortColumn.sortDirection == DataGridSortDirection.ascending
+        ? aValue.toString().compareTo(bValue.toString())
+        : bValue.toString().compareTo(aValue.toString());
   }
 }

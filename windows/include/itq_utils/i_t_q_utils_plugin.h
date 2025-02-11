@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void ITQUtilsPluginRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void ItqUtilsPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)

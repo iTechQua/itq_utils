@@ -1,3 +1,5 @@
+## 2.1.4
+- Fix search issue on generic datatable
 ## 2.1.3
 - Upgrade new version issue fixed
 ## 2.1.2

@@ -1,12 +1,12 @@
 import Flutter
 import UIKit
 
-public class SwiftITQUtilsPlugin: NSObject, FlutterPlugin {
+public class SwiftItqUtilsPlugin: NSObject, FlutterPlugin {
   var packInfo = [String: String]()
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "itq_utils", binaryMessenger: registrar.messenger())
-    let instance = SwiftITQUtilsPlugin()
+    let instance = SwiftItqUtilsPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 

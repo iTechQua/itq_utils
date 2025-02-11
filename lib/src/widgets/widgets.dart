@@ -16,25 +16,25 @@ Future<bool?> showConfirmDialog<bool>(
   return showDialog(
     context: context,
     // barrierDismissible: barrierDismissible ?? false,
-    builder: (_) => AlertDialog(
+    builder: (context) => AlertDialog(
       title: Text(title.validate(), style: primaryTextStyle()),
       actions: <Widget>[
         SimpleDialogOption(
           child: Text(negativeText.validate(), style: secondaryTextStyle()),
           onPressed: () {
-            finish(_, false);
+            finish(context, false);
           },
         ),
         SimpleDialogOption(
           onPressed: () {
-            finish(_, true);
+            finish(context, true);
 
             onAccept?.call();
           },
           child: Text(
             positiveText.validate(),
             style: primaryTextStyle(
-                color: buttonColor ?? Theme.of(_).primaryColor),
+                color: buttonColor ?? Theme.of(context).primaryColor),
           ),
         ),
       ],
@@ -75,13 +75,13 @@ Future<T?> showInDialog<T>(
     barrierLabel: '',
     barrierDismissible: barrierDismissible,
     transitionDuration: transitionDuration ?? 400.milliseconds,
-    transitionBuilder: (_, animation, secondaryAnimation, c) {
+    transitionBuilder: (context, animation, secondaryAnimation, c) {
       return dialogAnimatedWrapperWidget(
         animation: animation,
         dialogAnimation: dialogAnimation,
         curve: curve,
         child: AlertDialog(
-          content: builder != null ? builder.call(_) : child,
+          content: builder != null ? builder.call(context) : child,
           shape: shape ?? defaultDialogShape,
           title: title,
           titleTextStyle: titleTextStyle,

@@ -16,13 +16,13 @@
 
 namespace {
 
-class ITQUtilsPlugin : public flutter::Plugin {
+class ItqUtilsPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
-  ITQUtilsPlugin();
+  ItqUtilsPlugin();
 
-  virtual ~ITQUtilsPlugin();
+  virtual ~ItqUtilsPlugin();
 
  private:
   // Called when a method is called on this plugin's channel from Dart.
@@ -32,14 +32,14 @@ class ITQUtilsPlugin : public flutter::Plugin {
 };
 
 // static
-void ITQUtilsPlugin::RegisterWithRegistrar(
+void ItqUtilsPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "itq_utils",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto plugin = std::make_unique<ITQUtilsPlugin>();
+  auto plugin = std::make_unique<ItqUtilsPlugin>();
 
   channel->SetMethodCallHandler(
       [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -49,11 +49,11 @@ void ITQUtilsPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-ITQUtilsPlugin::ITQUtilsPlugin() {}
+ItqUtilsPlugin::ItqUtilsPlugin() {}
 
-ITQUtilsPlugin::~ITQUtilsPlugin() {}
+ItqUtilsPlugin::~ItqUtilsPlugin() {}
 
-void ITQUtilsPlugin::HandleMethodCall(
+void ItqUtilsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   if (method_call.method_name().compare("getPlatformVersion") == 0) {
@@ -74,9 +74,9 @@ void ITQUtilsPlugin::HandleMethodCall(
 
 }  // namespace
 
-void ITQUtilsPluginRegisterWithRegistrar(
+void ItqUtilsPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  ITQUtilsPlugin::RegisterWithRegistrar(
+  ItqUtilsPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
 }

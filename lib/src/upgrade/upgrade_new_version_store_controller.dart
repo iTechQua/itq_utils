@@ -1,5 +1,3 @@
-// Copyright (c) 2024 Larry Aasen. All rights reserved.
-
 import 'dart:async';
 
 import 'package:itq_utils/itq_utils.dart';

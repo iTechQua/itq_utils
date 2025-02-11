@@ -11,10 +11,10 @@ G_BEGIN_DECLS
 #define FLUTTER_PLUGIN_EXPORT
 #endif
 
-typedef struct _ITQUtilsPlugin ITQUtilsPlugin;
+typedef struct _ItqUtilsPlugin ItqUtilsPlugin;
 typedef struct {
   GObjectClass parent_class;
-} ITQUtilsPluginClass;
+} ItqUtilsPluginClass;
 
 FLUTTER_PLUGIN_EXPORT GType itq_utils_plugin_get_type();
 

@@ -46,7 +46,7 @@ class Appcast {
     }
 
     AppcastItem? bestItem;
-    items!.forEach((AppcastItem item) {
+    for (var item in items!) {
       if (item.hostSupportsItem(
               osVersion: osVersionString,
               currentPlatform: upgraderOS.current) &&
@@ -56,7 +56,7 @@ class Appcast {
         } else {
           try {
             final itemVersion = Version.parse(item.versionString!);
-            final bestItemVersion = Version.parse(bestItem!.versionString!);
+            final bestItemVersion = Version.parse(bestItem.versionString!);
             if (itemVersion > bestItemVersion) {
               bestItem = item;
             }
@@ -65,7 +65,7 @@ class Appcast {
           }
         }
       }
-    });
+    }
     return bestItem;
   }
 
@@ -77,7 +77,7 @@ class Appcast {
     }
 
     AppcastItem? bestItem;
-    items!.forEach((AppcastItem item) {
+    for (var item in items!) {
       if (item.hostSupportsItem(
           osVersion: osVersionString, currentPlatform: upgraderOS.current)) {
         if (bestItem == null) {
@@ -85,7 +85,7 @@ class Appcast {
         } else {
           try {
             final itemVersion = Version.parse(item.versionString!);
-            final bestItemVersion = Version.parse(bestItem!.versionString!);
+            final bestItemVersion = Version.parse(bestItem.versionString!);
             if (itemVersion > bestItemVersion) {
               bestItem = item;
             }
@@ -94,7 +94,7 @@ class Appcast {
           }
         }
       }
-    });
+    }
     return bestItem;
   }
 
@@ -149,7 +149,7 @@ class Appcast {
         String? itemVersion;
         String? enclosureVersion;
 
-        itemElement.children.forEach((XmlNode childNode) {
+        for (var childNode in itemElement.children) {
           if (childNode is XmlElement) {
             final name = childNode.name.toString();
             if (name == AppcastConstants.ElementTitle) {
@@ -157,7 +157,7 @@ class Appcast {
             } else if (name == AppcastConstants.ElementDescription) {
               itemDescription = childNode.innerText;
             } else if (name == AppcastConstants.ElementEnclosure) {
-              childNode.attributes.forEach((XmlAttribute attribute) {
+              for (var attribute in childNode.attributes) {
                 if (attribute.name.toString() ==
                     AppcastConstants.AttributeVersion) {
                   enclosureVersion = attribute.value;
@@ -168,7 +168,7 @@ class Appcast {
                     AppcastConstants.AttributeURL) {
                   fileURL = attribute.value;
                 }
-              });
+              }
             } else if (name == AppcastConstants.ElementMaximumSystemVersion) {
               maximumSystemVersion = childNode.innerText;
             } else if (name == AppcastConstants.ElementMinimumSystemVersion) {
@@ -178,17 +178,17 @@ class Appcast {
             } else if (name == AppcastConstants.ElementReleaseNotesLink) {
               releaseNotesLink = childNode.innerText;
             } else if (name == AppcastConstants.ElementTags) {
-              childNode.children.forEach((XmlNode tagChildNode) {
+              for (var tagChildNode in childNode.children) {
                 if (tagChildNode is XmlElement) {
                   final tagName = tagChildNode.name.toString();
                   tags.add(tagName);
                 }
-              });
+              }
             } else if (name == AppcastConstants.AttributeVersion) {
               itemVersion = childNode.innerText;
             }
           }
-        });
+        }
 
         if (itemVersion == null) {
           newVersion = enclosureVersion;

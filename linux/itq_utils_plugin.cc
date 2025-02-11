@@ -8,17 +8,17 @@
 
 #define itq_utils_PLUGIN(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST((obj), itq_utils_plugin_get_type(), \
-                              ITQUtilsPlugin))
+                              ItqUtilsPlugin))
 
-struct _ITQUtilsPlugin {
+struct _ItqUtilsPlugin {
   GObject parent_instance;
 };
 
-G_DEFINE_TYPE(ITQUtilsPlugin, itq_utils_plugin, g_object_get_type())
+G_DEFINE_TYPE(ItqUtilsPlugin, itq_utils_plugin, g_object_get_type())
 
 // Called when a method call is received from Flutter.
 static void itq_utils_plugin_handle_method_call(
-    ITQUtilsPlugin* self,
+    ItqUtilsPlugin* self,
     FlMethodCall* method_call) {
   g_autoptr(FlMethodResponse) response = nullptr;
 
@@ -41,20 +41,20 @@ static void itq_utils_plugin_dispose(GObject* object) {
   G_OBJECT_CLASS(itq_utils_plugin_parent_class)->dispose(object);
 }
 
-static void itq_utils_plugin_class_init(ITQUtilsPluginClass* klass) {
+static void itq_utils_plugin_class_init(ItqUtilsPluginClass* klass) {
   G_OBJECT_CLASS(klass)->dispose = itq_utils_plugin_dispose;
 }
 
-static void itq_utils_plugin_init(ITQUtilsPlugin* self) {}
+static void itq_utils_plugin_init(ItqUtilsPlugin* self) {}
 
 static void method_call_cb(FlMethodChannel* channel, FlMethodCall* method_call,
                            gpointer user_data) {
-  ITQUtilsPlugin* plugin = itq_utils_PLUGIN(user_data);
+  ItqUtilsPlugin* plugin = itq_utils_PLUGIN(user_data);
   itq_utils_plugin_handle_method_call(plugin, method_call);
 }
 
 void itq_utils_plugin_register_with_registrar(FlPluginRegistrar* registrar) {
-  ITQUtilsPlugin* plugin = itq_utils_PLUGIN(
+  ItqUtilsPlugin* plugin = itq_utils_PLUGIN(
       g_object_new(itq_utils_plugin_get_type(), nullptr));
 
   g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
