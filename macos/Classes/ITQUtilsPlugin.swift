@@ -1,10 +1,10 @@
 import Cocoa
 import FlutterMacOS
 
-public class ItqUtilsPlugin: NSObject, FlutterPlugin {
+public class ITQUtilsPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "itq_utils", binaryMessenger: registrar.messenger)
-    let instance = ItqUtilsPlugin()
+    let instance = ITQUtilsPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 

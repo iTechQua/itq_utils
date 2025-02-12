@@ -1,3 +1,5 @@
+## 2.1.5
+- Fix windows error
 ## 2.1.4
 - Fix search issue on generic datatable
 ## 2.1.3

@@ -1,4 +1,4 @@
 #import <Flutter/Flutter.h>
 
-@interface ItqUtilsPlugin : NSObject<FlutterPlugin>
+@interface ITQUtilsPlugin : NSObject<FlutterPlugin>
 @end

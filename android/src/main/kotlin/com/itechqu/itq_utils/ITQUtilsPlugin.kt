@@ -12,8 +12,8 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
-/** ItqUtilsPlugin */
-class ItqUtilsPlugin : FlutterPlugin, MethodCallHandler {
+/** ITQUtilsPlugin */
+class ITQUtilsPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var channel: MethodChannel
     private var appContext: Context? = null
 

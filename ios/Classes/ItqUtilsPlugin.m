@@ -1,4 +1,4 @@
-#import ItqUtilsPlugin.h
+#import "ITQUtilsPlugin.h"
 #if __has_include(<itq_utils/itq_utils-Swift.h>)
 #import <itq_utils/itq_utils-Swift.h>
 #else
@@ -8,8 +8,8 @@
 #import "itq_utils-Swift.h"
 #endif
 
-@implementation ItqUtilsPlugin
+@implementation ITQUtilsPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  [SwiftItqUtilsPlugin registerWithRegistrar:registrar];
+  [SwiftITQUtilsPlugin registerWithRegistrar:registrar];
 }
 @end
