@@ -1,3 +1,5 @@
+## 2.1.6
+- Added new functionality on generic datatable
 ## 2.1.5
 - Fix windows error
 ## 2.1.4

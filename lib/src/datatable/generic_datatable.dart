@@ -1,6 +1,5 @@
-// generic_datatable.dart
-
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,6 +9,7 @@ import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:universal_html/html.dart' as html;
+import 'package:google_fonts/google_fonts.dart';
 
 class GenericDataTable<T> extends StatefulWidget {
   const GenericDataTable({
@@ -23,6 +23,16 @@ class GenericDataTable<T> extends StatefulWidget {
     required this.fileName,
     required this.actionBuilder,
     this.pageSize = 10,
+    this.cellBuilders,
+    this.columnSizes,
+    this.onSort,
+    this.showCheckboxColumn = false,
+    this.selectedItems,
+    this.onSelectItem,
+    this.customHeaderBuilders,
+    this.minWidth,
+    this.rowHeight = 45,
+    this.headerHeight = 45,
   });
 
   final Map<String, dynamic> tableHeaderDataMap;
@@ -34,6 +44,16 @@ class GenericDataTable<T> extends StatefulWidget {
   final Color? gridLineColor;
   final ColumnWidthMode widthMode;
   final String fileName;
+  final Map<String, Widget Function(dynamic value, T rowData)>? cellBuilders;
+  final Map<String, double>? columnSizes;
+  final Function(String column, bool ascending)? onSort;
+  final bool showCheckboxColumn;
+  final List<T>? selectedItems;
+  final Function(bool?, T)? onSelectItem;
+  final Map<String, Widget Function(String columnName)>? customHeaderBuilders;
+  final double? minWidth;
+  final int rowHeight;
+  final double headerHeight;
 
   @override
   GenericDataTableState<T> createState() => GenericDataTableState<T>();
@@ -47,142 +67,98 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
   int _pageSize = 10;
   String _searchQuery = '';
   late List<T> _filteredData;
+  String? _sortColumn;
+  bool _sortAscending = true;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _filteredData = widget.tableRowDataList;
+    _filteredData = List.from(widget.tableRowDataList);
     _pageSize = widget.pageSize;
     _initializeTableHeaders();
     _updateTableData();
   }
 
-  Widget _buildDataTable(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return SizedBox(
-          width: constraints.maxWidth,
-          child: SfDataGridTheme(
-            data: SfDataGridThemeData(
-              headerColor: const Color(0xFF2196F3),
-              gridLineColor: widget.gridLineColor ?? Colors.grey.shade300,
-              gridLineStrokeWidth: 1,
-            ),
-            child: _filteredData.isEmpty
-                ? Stack(
-              children: [
-                SfDataGrid(
-                  source: GenericDataSource([]),
-                  columns: _tableHeader,
-                  rowHeight: 45,
-                  headerRowHeight: 45,
-                  gridLinesVisibility: GridLinesVisibility.both,
-                  headerGridLinesVisibility: GridLinesVisibility.both,
-                  columnWidthMode: ColumnWidthMode.fill,
-                ),
-                Positioned.fill(
-                  top: 45, // Height of header
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Colors.grey.shade300),
-                        left: BorderSide(color: Colors.grey.shade300),
-                        right: BorderSide(color: Colors.grey.shade300),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _searchQuery.isEmpty
-                            ? 'No data available'
-                            : 'No matching records found',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-                : SfDataGrid(
-              source: GenericDataSource(_tableRowData),
-              columns: _tableHeader,
-              rowHeight: 45,
-              headerRowHeight: 45,
-              gridLinesVisibility: GridLinesVisibility.both,
-              headerGridLinesVisibility: GridLinesVisibility.both,
-              columnWidthMode: ColumnWidthMode.fill,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-// Also update the _initializeTableHeaders method to use proportional widths
   void _initializeTableHeaders() {
     _tableHeader = <GridColumn>[
-      GridColumn(
-        columnName: 'ID',
-        columnWidthMode: ColumnWidthMode.fill,
-        minimumWidth: 60,
-        maximumWidth: 80,
-        label: Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.only(left: 16),
-          child: const Text(
-            'ID',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
+      if (widget.showCheckboxColumn)
+        GridColumn(
+          columnName: 'checkbox',
+          width: 50,
+          columnWidthMode: ColumnWidthMode.none,
+          label: _buildSelectionHeader(),
         ),
+      GridColumn(
+        columnName: 'S. No.',
+        width: widget.columnSizes?['S. No.'] ?? 100,
+        columnWidthMode: widget.widthMode,
+        label: _buildHeaderCell('S. No.'),
       ),
       ...widget.tableHeaderDataMap.keys.map((String key) {
-        double minimumWidth = 100;
-        double maximumWidth = double.infinity;
-
         return GridColumn(
           columnName: key,
-          columnWidthMode: ColumnWidthMode.fill,
-          minimumWidth: minimumWidth,
-          maximumWidth: maximumWidth,
-          label: Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              key,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ),
+          width: widget.columnSizes![key]!,
+          columnWidthMode: widget.widthMode,
+          label: _buildHeaderCell(key),
+          allowSorting: true,
         );
       }),
       GridColumn(
         columnName: 'Action',
-        columnWidthMode: ColumnWidthMode.fill,
-        minimumWidth: 100,
-        maximumWidth: 120,
-        label: Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.only(left: 16),
-          child: const Text(
-            'Action',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-        ),
+        width: widget.columnSizes?['Action'] ?? 120,
+        columnWidthMode: widget.widthMode,
+        label: _buildHeaderCell('Action'),
       ),
     ];
   }
 
+  Widget _buildSelectionHeader() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      alignment: Alignment.center,
+      child: Checkbox(
+        value: _areAllItemsSelected(),
+        onChanged: _onSelectAllItems,
+        activeColor: widget.headerColor,
+      ),
+    );
+  }
+
+  Widget _buildHeaderCell(String columnName) {
+    if (widget.customHeaderBuilders?.containsKey(columnName) ?? false) {
+      return widget.customHeaderBuilders![columnName]!(columnName);
+    }
+
+    return GestureDetector(
+      onTap: () => _handleSort(columnName),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                columnName,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            if (_sortColumn == columnName)
+              Icon(
+                _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                size: 16,
+                color: Colors.white,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _updateTableData() {
     if (_filteredData.isEmpty) {
@@ -207,14 +183,25 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
 
       return DataGridRow(
         cells: <DataGridCell>[
-          DataGridCell<int>(columnName: 'ID', value: startIndex + index + 1),
-          ...widget
-              .toMakeTableMapFunction(item)
-              .entries
-              .map((MapEntry<String, dynamic> entry) {
+          if (widget.showCheckboxColumn)
+            DataGridCell<Widget>(
+              columnName: 'checkbox',
+              value: Checkbox(
+                value: widget.selectedItems?.contains(item) ?? false,
+                onChanged: (bool? value) {
+                  if (widget.onSelectItem != null) {
+                    widget.onSelectItem!(value, item);
+                  }
+                },
+              ),
+            ),
+          DataGridCell<int>(columnName: 'S. No.', value: startIndex + index + 1),
+          ...widget.toMakeTableMapFunction(item).entries.map((entry) {
             return DataGridCell<dynamic>(
               columnName: entry.key,
-              value: entry.value ?? '',
+              value: widget.cellBuilders?.containsKey(entry.key) ?? false
+                  ? widget.cellBuilders![entry.key]!(entry.value, item)
+                  : entry.value,
             );
           }),
           DataGridCell<Widget>(
@@ -224,6 +211,46 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
         ],
       );
     }).toList();
+  }
+
+  bool _areAllItemsSelected() {
+    if (widget.selectedItems == null || _filteredData.isEmpty) return false;
+    return widget.selectedItems!.length == _filteredData.length &&
+        _filteredData.every((item) => widget.selectedItems!.contains(item));
+  }
+
+  void _onSelectAllItems(bool? selected) {
+    if (selected == null || widget.onSelectItem == null) return;
+    for (var item in _filteredData) {
+      widget.onSelectItem!(selected, item);
+    }
+  }
+
+  void _handleSort(String column) {
+    setState(() {
+      if (_sortColumn == column) {
+        _sortAscending = !_sortAscending;
+      } else {
+        _sortColumn = column;
+        _sortAscending = true;
+      }
+
+      if (widget.onSort != null) {
+        widget.onSort!(_sortColumn!, _sortAscending);
+      } else {
+        _filteredData.sort((a, b) {
+          final aValue = widget.toMakeTableMapFunction(a)[column];
+          final bValue = widget.toMakeTableMapFunction(b)[column];
+
+          if (aValue == null || bValue == null) return 0;
+
+          final comparison = aValue.toString().compareTo(bValue.toString());
+          return _sortAscending ? comparison : -comparison;
+        });
+      }
+
+      _updateTableData();
+    });
   }
 
   void _filterData(String query) {
@@ -241,6 +268,162 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
     });
   }
 
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          _buildPageSizeDropdown(),
+          const SizedBox(width: 16),
+          _buildExportButton(),
+          const Spacer(),
+          _buildSearchField(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageSizeDropdown() {
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: ButtonTheme(
+          alignedDropdown: true,
+          child: DropdownButton<int>(
+            value: _pageSize,
+            items: [5, 10, 20, 50].map((int value) {
+              return DropdownMenuItem<int>(
+                value: value,
+                child: Text('$value'),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  _pageSize = value;
+                  _currentPage = 0;
+                  _updateTableData();
+                });
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExportButton() {
+    return PopupMenuButton<String>(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF6D28D9),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          'Export',
+          style: GoogleFonts.poppins(color: Colors.white),
+        ),
+      ),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'excel',
+          child: Text('Export to Excel', style: GoogleFonts.poppins()),
+          onTap: _exportToExcel,
+        ),
+        PopupMenuItem(
+          value: 'pdf',
+          child: Text('Export to PDF', style: GoogleFonts.poppins()),
+          onTap: _exportToPdf,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchField() {
+    return SizedBox(
+      width: 250,
+      child: TextField(
+        controller: _searchController,
+        onChanged: _filterData,
+        decoration: InputDecoration(
+          hintText: 'Search',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPagination() {
+    final int totalPages = (_filteredData.length / _pageSize).ceil();
+    final int startEntry = _currentPage * _pageSize + 1;
+    final int endEntry =
+    math.min((_currentPage + 1) * _pageSize, _filteredData.length);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing $startEntry to $endEntry of ${_filteredData.length} entries',
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.first_page),
+                onPressed: _currentPage > 0 ? () => _changePage(0) : null,
+                tooltip: 'First Page',
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                onPressed: _currentPage > 0
+                    ? () => _changePage(_currentPage - 1)
+                    : null,
+                tooltip: 'Previous Page',
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  'Page ${_currentPage + 1} of $totalPages',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                onPressed: _currentPage < totalPages - 1
+                    ? () => _changePage(_currentPage + 1)
+                    : null,
+                tooltip: 'Next Page',
+              ),
+              IconButton(
+                icon: const Icon(Icons.last_page),
+                onPressed: _currentPage < totalPages - 1
+                    ? () => _changePage(totalPages - 1)
+                    : null,
+                tooltip: 'Last Page',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _changePage(int page) {
     if (page < 0 || page * _pageSize >= _filteredData.length) return;
     setState(() {
@@ -255,12 +438,18 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
       final sheet = workbook.worksheets[0];
 
       // Add headers
-      sheet.getRangeByIndex(1, 1).setText('ID');
+      sheet.getRangeByIndex(1, 1).setText('S. No.');
       var columnIndex = 2;
       for (final key in widget.tableHeaderDataMap.keys) {
         sheet.getRangeByIndex(1, columnIndex).setText(key);
         columnIndex++;
       }
+
+      // Style headers
+      final headerRange = sheet.getRangeByIndex(1, 1, 1, columnIndex - 1);
+      headerRange.cellStyle.bold = true;
+      headerRange.cellStyle.backColor = '#2196F3';
+      headerRange.cellStyle.fontColor = '#FFFFFF';
 
       // Add data
       for (var i = 0; i < _filteredData.length; i++) {
@@ -270,17 +459,20 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
 
         final rowData = widget.toMakeTableMapFunction(_filteredData[i]);
         for (final value in rowData.values) {
-          sheet
-              .getRangeByIndex(i + 2, columnIndex)
-              .setValue(value?.toString() ?? '');
+          if (value is Widget) {
+            sheet.getRangeByIndex(i + 2, columnIndex).setValue('');
+          } else {
+            sheet
+                .getRangeByIndex(i + 2, columnIndex)
+                .setValue(value?.toString() ?? '');
+          }
           columnIndex++;
         }
       }
 
       // Auto-fit columns
-      sheet.autoFitColumn(1);
-      for (var i = 1; i <= widget.tableHeaderDataMap.length; i++) {
-        sheet.autoFitColumn(i + 1);
+      for (var i = 1; i <= columnIndex - 1; i++) {
+        sheet.autoFitColumn(i);
       }
 
       final List<int> bytes = workbook.saveAsStream();
@@ -296,7 +488,7 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
     try {
       final pdf = pw.Document();
 
-      final headers = ['ID', ...widget.tableHeaderDataMap.keys];
+      final headers = ['S. No.', ...widget.tableHeaderDataMap.keys];
       final tableData = [
         headers,
         ..._filteredData.asMap().entries.map(
@@ -305,17 +497,27 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
             ...widget
                 .toMakeTableMapFunction(entry.value)
                 .values
-                .map((e) => e?.toString() ?? ''),
+                .map((e) => e is Widget ? '' : e?.toString() ?? ''),
           ],
         ),
       ];
 
       pdf.addPage(
         pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
+          pageFormat: PdfPageFormat.a4.landscape,
           margin: const pw.EdgeInsets.all(20),
           build: (context) => [
+            pw.Header(
+              level: 0,
+              child: pw.Text(widget.fileName,
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  )),
+            ),
+            pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
+              context: context,
               headers: tableData[0],
               data: tableData.sublist(1),
               border: pw.TableBorder.all(),
@@ -331,6 +533,11 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
                 0: pw.Alignment.center,
                 for (var i = 1; i < headers.length; i++)
                   i: pw.Alignment.centerLeft,
+              },
+              columnWidths: {
+                0: const pw.IntrinsicColumnWidth(flex: 1),
+                for (var i = 1; i < headers.length; i++)
+                  i: const pw.IntrinsicColumnWidth(flex: 3),
               },
             ),
           ],
@@ -359,9 +566,12 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
   Future<void> _saveFileWeb(List<int> bytes, String fileName) async {
     final blob = html.Blob([bytes]);
     final url = html.Url.createObjectUrlFromBlob(blob);
-    html.AnchorElement(href: url)
+    final anchor = html.AnchorElement(href: url)
       ..setAttribute('download', fileName)
-      ..click();
+      ..style.display = 'none';
+    html.document.body?.children.add(anchor);
+    anchor.click();
+    html.document.body?.children.remove(anchor);
     html.Url.revokeObjectUrl(url);
   }
 
@@ -376,11 +586,13 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
-        content: SingleChildScrollView(child: Text(message)),
+        title: Text(title, style: GoogleFonts.poppins()),
+        content: SingleChildScrollView(
+          child: Text(message, style: GoogleFonts.poppins()),
+        ),
         actions: [
           TextButton(
-            child: const Text('OK'),
+            child: Text('OK', style: GoogleFonts.poppins()),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -392,20 +604,23 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Export Successful'),
+        title: Text('Export Successful',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('File saved successfully!'),
+            Text('File saved successfully!', style: GoogleFonts.poppins()),
             const SizedBox(height: 8),
-            Text('Location: $filePath'),
-            Text('Size: ${(fileSize / 1024).toStringAsFixed(2)} KB'),
+            Text('Location: $filePath',
+                style: GoogleFonts.poppins(fontSize: 12)),
+            Text('Size: ${(fileSize / 1024).toStringAsFixed(2)} KB',
+                style: GoogleFonts.poppins(fontSize: 12)),
           ],
         ),
         actions: [
           TextButton(
-            child: const Text('OK'),
+            child: Text('OK', style: GoogleFonts.poppins()),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -415,191 +630,75 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final int totalPages = (_filteredData.length / _pageSize).ceil();
-    final int currentEntryStart =
-    _filteredData.isEmpty ? 0 : (_currentPage * _pageSize) + 1;
-    final int currentEntryEnd =
-    (_currentPage + 1) * _pageSize > _filteredData.length
-        ? _filteredData.length
-        : (_currentPage + 1) * _pageSize;
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4.0),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Calculate total width based on column sizes
+            double totalWidth = (widget.columnSizes?.values.fold<double>(0.0, (sum, width) => sum + width) ?? 0.0);
 
-    return Column(
-      children: <Widget>[
-        _buildTopBar(),
-        _buildDataTable(context),
-        if (_filteredData.isNotEmpty)
-          _buildPagination(currentEntryStart, currentEntryEnd, totalPages),
-      ],
-    );
-  }
-
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-
-          Container(
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Row(
-              children: [
-                Theme(
-                  data: Theme.of(context).copyWith(
-                    hoverColor: Colors.transparent,
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: ButtonTheme(
-                      alignedDropdown: true,
-                      child: DropdownButton<int>(
-                        value: _pageSize,
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        iconSize: 20,
-                        style: const TextStyle(
-                          color: Color(0xFF475569),
-                          fontSize: 14,
+            return SizedBox(
+              width: constraints.maxWidth,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildTopBar(),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: _filteredData.isEmpty
+                          ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Text(
+                            _searchQuery.isEmpty
+                                ? 'No data available'
+                                : 'No matching records found',
+                            style: GoogleFonts.poppins(fontSize: 14),
+                          ),
                         ),
-                        selectedItemBuilder: (BuildContext context) {
-                          return [5, 10, 20, 50].map<Widget>((int value) {
-                            return Container(
-                              padding: const EdgeInsets.only(right: 8),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '$value',
-                                style: const TextStyle(
-                                  color: Color(0xFF475569),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            );
-                          }).toList();
-                        },
-                        items: [5, 10, 20, 50].map<DropdownMenuItem<int>>((int value) {
-                          return DropdownMenuItem<int>(
-                            value: value,
-                            child: Text('$value'),
-                          );
-                        }).toList(),
-                        onChanged: (size) {
-                          if (size != null) {
-                            setState(() {
-                              _pageSize = size;
-                              _currentPage = 0;
-                              _updateTableData();
-                            });
-                          }
-                        },
+                      )
+                          : SizedBox(
+                        width: totalWidth,
+                        child: _buildDataTable(context),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          PopupMenuButton<String>(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF6D28D9),
-                borderRadius: BorderRadius.circular(4),
+                  if (_filteredData.isNotEmpty) _buildPagination(),
+                ],
               ),
-              child: const Text(
-                'Export',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'excel',
-                child: const Text('Export to Excel'),
-                onTap: _exportToExcel,
-              ),
-              PopupMenuItem(
-                value: 'pdf',
-                child: const Text('Export to PDF'),
-                onTap: _exportToPdf,
-              ),
-            ],
-          ),
-          const Spacer(),
-          SizedBox(
-            width: 250,
-            child: TextField(
-              controller: _searchController,
-              onChanged: _filterData,
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-              ),
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildPagination(
-      int currentEntryStart, int currentEntryEnd, int totalPages) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Showing $currentEntryStart to $currentEntryEnd of ${_filteredData.length} entries',
-            style: const TextStyle(fontSize: 14),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.first_page),
-                onPressed: _currentPage > 0 ? () => _changePage(0) : null,
-                tooltip: 'First Page',
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: _currentPage > 0
-                    ? () => _changePage(_currentPage - 1)
-                    : null,
-                tooltip: 'Previous Page',
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  'Page ${_currentPage + 1} of $totalPages',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: _currentPage < totalPages - 1
-                    ? () => _changePage(_currentPage + 1)
-                    : null,
-                tooltip: 'Next Page',
-              ),
-              IconButton(
-                icon: const Icon(Icons.last_page),
-                onPressed: _currentPage < totalPages - 1
-                    ? () => _changePage(totalPages - 1)
-                    : null,
-                tooltip: 'Last Page',
-              ),
-            ],
-          ),
-        ],
+  Widget _buildDataTable(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 200), // Add minimum height
+      child: SfDataGridTheme(
+        data: SfDataGridThemeData(
+          headerColor: widget.headerColor,
+          gridLineColor: widget.gridLineColor ?? Colors.grey.shade300,
+          gridLineStrokeWidth: 1,
+        ),
+        child: SfDataGrid(
+          source: EnhancedDataSource(_tableRowData),
+          columns: _tableHeader,
+          allowSorting: true,
+          rowHeight: widget.rowHeight.toDouble(),
+          headerRowHeight: widget.headerHeight,
+          gridLinesVisibility: GridLinesVisibility.both,
+          headerGridLinesVisibility: GridLinesVisibility.both,
+          columnWidthMode: widget.widthMode,
+        ),
       ),
     );
   }
@@ -611,8 +710,10 @@ class GenericDataTableState<T> extends State<GenericDataTable<T>> {
   }
 }
 
-class GenericDataSource extends DataGridSource {
-  GenericDataSource(this._dataSource);
+class EnhancedDataSource<T> extends DataGridSource {
+  EnhancedDataSource(
+      this._dataSource,
+      );
 
   final List<DataGridRow> _dataSource;
 
@@ -620,22 +721,25 @@ class GenericDataSource extends DataGridSource {
   List<DataGridRow> get rows => _dataSource;
 
   @override
-  DataGridRowAdapter buildRow(DataGridRow row) {
+  DataGridRowAdapter? buildRow(DataGridRow row) {
+
     return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((DataGridCell cell) {
-        if (cell.value is Widget) {
+      cells: row.getCells().map<Widget>((cell) {
+        if (cell.columnName == 'checkbox') {
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            alignment: Alignment.centerLeft,
-            child: cell.value as Widget,
+            alignment: Alignment.center,
+            child: cell.value,
           );
         }
+
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.centerLeft,
-          child: Text(
+          child: cell.value is Widget
+              ? cell.value as Widget
+              : Text(
             cell.value?.toString() ?? '',
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 13,
               color: Colors.black87,
             ),
@@ -647,28 +751,10 @@ class GenericDataSource extends DataGridSource {
   }
 
   @override
-  int compare(DataGridRow? a, DataGridRow? b, SortColumnDetails sortColumn) {
-    if (a == null || b == null) return 0;
-
-    final aValue = a
-        .getCells()
-        .firstWhere((cell) => cell.columnName == sortColumn.name)
-        .value;
-    final bValue = b
-        .getCells()
-        .firstWhere((cell) => cell.columnName == sortColumn.name)
-        .value;
-
-    if (aValue == null || bValue == null) return 0;
-
-    if (aValue is num && bValue is num) {
-      return sortColumn.sortDirection == DataGridSortDirection.ascending
-          ? aValue.compareTo(bValue)
-          : bValue.compareTo(aValue);
-    }
-
-    return sortColumn.sortDirection == DataGridSortDirection.ascending
-        ? aValue.toString().compareTo(bValue.toString())
-        : bValue.toString().compareTo(aValue.toString());
+  Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    return true;
   }
+
+  @override
+  bool shouldRecalculateColumnWidths() => true;
 }

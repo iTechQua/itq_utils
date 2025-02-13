@@ -1,6 +1,6 @@
 name: itq_utils
 description: Collection of Widgets and helpful Methods that every developer needs.
-version: 2.1.5
+version: 2.1.6
 #homepage: https://iTechQua.github.io
 repository: https://github.com/iTechQua/itq_utils
 issue_tracker: https://github.com/iTechQua/itq_utils/issues
@@ -28,6 +28,7 @@ dependencies:
   connectivity_plus: ^6.1.0
   http: ^1.2.2
   cached_network_image: ^3.2.3
+  google_fonts: ^6.1.0
 
   version: ^3.0.2
   xml: ^6.5.0
