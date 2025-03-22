@@ -1,3 +1,5 @@
+## 2.1.8
+- Fix plugin error
 ## 2.1.7
 - Fix ios error
 ## 2.1.6
