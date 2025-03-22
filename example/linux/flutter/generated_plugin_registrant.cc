@@ -11,7 +11,7 @@
 
 void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) itq_utils_registrar =
-      fl_plugin_registry_get_registrar_for_plugin(registry, "itq_utils_plugin");
+      fl_plugin_registry_get_registrar_for_plugin(registry, "ItqUtilsPlugin");
   itq_utils_plugin_register_with_registrar(itq_utils_registrar);
   g_autoptr(FlPluginRegistrar) url_launcher_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "UrlLauncherPlugin");

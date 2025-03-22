@@ -1,6 +1,6 @@
 name: itq_utils
 description: Collection of Widgets and helpful Methods that every developer needs.
-version: 2.1.6
+version: 2.1.7
 #homepage: https://iTechQua.github.io
 repository: https://github.com/iTechQua/itq_utils
 issue_tracker: https://github.com/iTechQua/itq_utils/issues
@@ -71,15 +71,18 @@ flutter:
     platforms:
       android:
         package: com.itechqu.itq_utils
-        pluginClass: ITQUtilsPlugin
+        pluginClass: ItqUtilsPlugin
       ios:
-        pluginClass: ITQUtilsPlugin
+        pluginClass: ItqUtilsPlugin
       linux:
-        pluginClass: itq_utils_plugin
+        pluginClass: ItqUtilsPlugin
       macos:
-        pluginClass: ITQUtilsPlugin
+        pluginClass: ItqUtilsPlugin
       windows:
-        pluginClass: ITQUtilsPlugin
+        pluginClass: ItqUtilsPluginCApi
+      web:
+        pluginClass: ItqUtilsWeb
+        fileName: itq_utils_web.dart
 
   fonts:
     - family: LineAwesomeIcons

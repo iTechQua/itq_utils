@@ -8,7 +8,7 @@
 #include <string>
 #include <variant>
 
-#include "i_t_q_utils_plugin.h"
+#include "itq_utils_plugin.h"
 
 namespace itq_utils {
 namespace test {

@@ -1,5 +1,5 @@
-#ifndef FLUTTER_PLUGIN_ITQ_UTILS_PLUGIN_H_
-#define FLUTTER_PLUGIN_ITQ_UTILS_PLUGIN_H_
+#ifndef FLUTTER_PLUGIN_NB_UTILS_PLUGIN_H_
+#define FLUTTER_PLUGIN_NB_UTILS_PLUGIN_H_
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -28,4 +28,4 @@ class ItqUtilsPlugin : public flutter::Plugin {
 
 }  // namespace itq_utils
 
-#endif  // FLUTTER_PLUGIN_ITQ_UTILS_PLUGIN_H_
+#endif  // FLUTTER_PLUGIN_NB_UTILS_PLUGIN_H_

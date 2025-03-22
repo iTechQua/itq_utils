@@ -1,4 +1,4 @@
-#include "include/itq_utils/i_t_q_utils_plugin.h"
+#include "itq_utils_plugin.h"
 
 // This must be included before many other Windows headers.
 #include <windows.h>
@@ -10,36 +10,20 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
-#include <map>
 #include <memory>
 #include <sstream>
 
-namespace {
-
-class ITQUtilsPlugin : public flutter::Plugin {
- public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
-
-  ITQUtilsPlugin();
-
-  virtual ~ITQUtilsPlugin();
-
- private:
-  // Called when a method is called on this plugin's channel from Dart.
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-};
+namespace itq_utils {
 
 // static
-void ITQUtilsPlugin::RegisterWithRegistrar(
+void ItqUtilsPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "itq_utils",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto plugin = std::make_unique<ITQUtilsPlugin>();
+  auto plugin = std::make_unique<ItqUtilsPlugin>();
 
   channel->SetMethodCallHandler(
       [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -49,11 +33,11 @@ void ITQUtilsPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-ITQUtilsPlugin::ITQUtilsPlugin() {}
+ItqUtilsPlugin::ItqUtilsPlugin() {}
 
-ITQUtilsPlugin::~ITQUtilsPlugin() {}
+ItqUtilsPlugin::~ItqUtilsPlugin() {}
 
-void ITQUtilsPlugin::HandleMethodCall(
+void ItqUtilsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   if (method_call.method_name().compare("getPlatformVersion") == 0) {
@@ -72,11 +56,4 @@ void ITQUtilsPlugin::HandleMethodCall(
   }
 }
 
-}  // namespace
-
-void ITQUtilsPluginRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar) {
-  ITQUtilsPlugin::RegisterWithRegistrar(
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
-}
+}  // namespace itq_utils

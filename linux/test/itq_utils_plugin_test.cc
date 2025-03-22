@@ -2,7 +2,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "include/itq_utils/i_t_q_utils_plugin.h"
+#include "include/itq_utils/itq_utils_plugin.h"
 #include "itq_utils_plugin_private.h"
 
 // This demonstrates a simple unit test of the C portion of this plugin's

@@ -69,11 +69,6 @@ return MaterialApp(
 );
 ```
 
-## Featured on Google's Dev Library
-<a href="https://devlibrary.withgoogle.com/products/flutter/repos/iTechQua-itq_utils" target="_blank">Checkout here</a>
-
-<a href="https://devlibrary.withgoogle.com/authors" target="_blank">Dev Library Contributors</a>
-
 ## Contents
 
 - [Useful Methods](#useful-methods-or-extensions-you-will-ever-need)
