@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2021-2023 Larry Aasen. All rights reserved.
- */
-
 import "package:os_detect/os_detect.dart" as platform;
 import 'package:flutter/foundation.dart';
 
@@ -25,18 +21,18 @@ class UpgraderOS {
     _current = isAndroid
         ? 'android'
         : isFuchsia
-            ? 'fuchsia'
-            : isIOS
-                ? 'ios'
-                : isLinux
-                    ? 'linux'
-                    : isMacOS
-                        ? 'macos'
-                        : isWeb
-                            ? 'web'
-                            : isWindows
-                                ? 'windows'
-                                : '';
+        ? 'fuchsia'
+        : isIOS
+        ? 'ios'
+        : isLinux
+        ? 'linux'
+        : isMacOS
+        ? 'macos'
+        : isWeb
+        ? 'web'
+        : isWindows
+        ? 'windows'
+        : '';
     return _current ?? '';
   }
 
@@ -45,18 +41,18 @@ class UpgraderOS {
     _currentOSType = isAndroid
         ? UpgraderOSType.android
         : isFuchsia
-            ? UpgraderOSType.fuchsia
-            : isIOS
-                ? UpgraderOSType.ios
-                : isLinux
-                    ? UpgraderOSType.linux
-                    : isMacOS
-                        ? UpgraderOSType.macos
-                        : isWeb
-                            ? UpgraderOSType.web
-                            : isWindows
-                                ? UpgraderOSType.windows
-                                : UpgraderOSType.android;
+        ? UpgraderOSType.fuchsia
+        : isIOS
+        ? UpgraderOSType.ios
+        : isLinux
+        ? UpgraderOSType.linux
+        : isMacOS
+        ? UpgraderOSType.macos
+        : isWeb
+        ? UpgraderOSType.web
+        : isWindows
+        ? UpgraderOSType.windows
+        : UpgraderOSType.android;
     return _currentOSType ?? UpgraderOSType.android;
   }
 

@@ -29,8 +29,8 @@ class ITunesSearchAPI {
   /// ```lookupURLByBundleId('com.google.Maps', country: 'FR');```
   Future<Map?> lookupByBundleId(String bundleId,
       {String? country = 'US',
-      String? language = 'en',
-      bool useCacheBuster = true}) async {
+        String? language = 'en',
+        bool useCacheBuster = true}) async {
     assert(bundleId.isNotEmpty);
     if (bundleId.isEmpty) {
       return null;
@@ -46,7 +46,7 @@ class ITunesSearchAPI {
 
     try {
       final response =
-          await client!.get(Uri.parse(url), headers: clientHeaders);
+      await client!.get(Uri.parse(url), headers: clientHeaders);
       if (debugLogging) {
         print('upgrader: response statusCode: ${response.statusCode}');
       }
@@ -72,13 +72,13 @@ class ITunesSearchAPI {
     }
 
     final url =
-        lookupURLById(id, country: country, useCacheBuster: useCacheBuster)!;
+    lookupURLById(id, country: country, useCacheBuster: useCacheBuster)!;
     if (debugLogging) {
       print('upgrader: download: $url');
     }
     try {
       final response =
-          await client!.get(Uri.parse(url), headers: clientHeaders);
+      await client!.get(Uri.parse(url), headers: clientHeaders);
       final decodedResults = _decodeResults(response.body);
       return decodedResults;
     } catch (e) {
@@ -95,8 +95,8 @@ class ITunesSearchAPI {
   /// ```lookupURLByBundleId('com.google.Maps', country: 'FR');```
   String? lookupURLByBundleId(String bundleId,
       {String country = 'US',
-      String language = 'en',
-      bool useCacheBuster = true}) {
+        String language = 'en',
+        bool useCacheBuster = true}) {
     if (bundleId.isEmpty) {
       return null;
     }

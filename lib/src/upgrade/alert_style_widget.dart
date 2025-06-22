@@ -42,14 +42,14 @@ class AlertStyleWidget extends StatelessWidget {
     const semanticLabel = 'semanticLabel';
     const EdgeInsetsGeometry? titlePadding = null;
     const EdgeInsetsGeometry contentPadding =
-        EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 24.0);
+    EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 24.0);
 
     var label = semanticLabel;
 
     if (title != null) {
       children.add(Padding(
         padding:
-            titlePadding ?? const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
+        titlePadding ?? const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
         child: DefaultTextStyle(
           style: Theme.of(context).textTheme.titleLarge!,
           child: Semantics(namesRoute: true, child: title),

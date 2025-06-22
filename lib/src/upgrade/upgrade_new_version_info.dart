@@ -1,5 +1,3 @@
-// Copyright (c) 2024 Larry Aasen. All rights reserved.
-
 import 'package:version/version.dart';
 
 class UpgraderVersionInfo {

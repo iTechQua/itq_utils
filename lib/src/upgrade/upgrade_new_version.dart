@@ -1,21 +1,16 @@
-// Copyright (c) 2018-2024 Larry Aasen. All rights reserved.
-
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
-import 'package:itq_utils/src/upgrade/upgrade_new_version_device.dart';
+import 'package:itq_utils/itq_utils.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_info.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version_messages.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_state.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_store_controller.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:version/version.dart';
-
 
 /// Signature of callbacks that have no arguments and return bool.
 typedef BoolCallback = bool Function();
@@ -94,6 +89,7 @@ class Upgrader with WidgetsBindingObserver {
 
   /// The [Upgrader] state.
   UpgraderState _state;
+
   UpgraderState get state => _state;
 
   /// A stream that provides a new state each time an evaluation should be performed.
@@ -499,7 +495,7 @@ class Upgrader with WidgetsBindingObserver {
   }
 
   /// Launch the app store from the app store listing URL.
-  void sendUserToAppStore() async {
+  Future<void> sendUserToAppStore() async {
     final appStoreListingURL = versionInfo?.appStoreListingURL;
     if (appStoreListingURL == null || appStoreListingURL.isEmpty) {
       if (state.debugLogging) {

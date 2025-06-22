@@ -1,8 +1,6 @@
 import 'package:http/http.dart' as http;
-import 'package:itq_utils/src/upgrade/upgrade_new_version_device.dart';
+import 'package:itq_utils/itq_utils.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_info.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version_messages.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:version/version.dart';
 
@@ -98,7 +96,7 @@ class UpgraderState {
       debugDisplayOnce: debugDisplayOnce ?? this.debugDisplayOnce,
       debugLogging: debugLogging ?? this.debugLogging,
       durationUntilAlertAgain:
-          durationUntilAlertAgain ?? this.durationUntilAlertAgain,
+      durationUntilAlertAgain ?? this.durationUntilAlertAgain,
       languageCodeOverride: languageCodeOverride ?? this.languageCodeOverride,
       messages: messages ?? this.messages,
       minAppVersion: minAppVersion ?? this.minAppVersion,
@@ -123,13 +121,13 @@ class UpgraderState {
       client: client,
       clientHeaders: clientHeaders,
       countryCodeOverride:
-          countryCodeOverride == true ? null : this.countryCodeOverride,
+      countryCodeOverride == true ? null : this.countryCodeOverride,
       debugDisplayAlways: debugDisplayAlways,
       debugDisplayOnce: debugDisplayOnce,
       debugLogging: debugLogging,
       durationUntilAlertAgain: durationUntilAlertAgain,
       languageCodeOverride:
-          languageCodeOverride == true ? null : this.languageCodeOverride,
+      languageCodeOverride == true ? null : this.languageCodeOverride,
       messages: messages == true ? null : this.messages,
       minAppVersion: minAppVersion == true ? null : this.minAppVersion,
       packageInfo: packageInfo == true ? null : this.packageInfo,

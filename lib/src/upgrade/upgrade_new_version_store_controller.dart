@@ -9,18 +9,18 @@ import 'package:version/version.dart';
 abstract class UpgraderStore {
   Future<UpgraderVersionInfo> getVersionInfo(
       {required UpgraderState state,
-      required Version installedVersion,
-      required String? country,
-      required String? language});
+        required Version installedVersion,
+        required String? country,
+        required String? language});
 }
 
 class UpgraderAppStore extends UpgraderStore {
   @override
   Future<UpgraderVersionInfo> getVersionInfo(
       {required UpgraderState state,
-      required Version installedVersion,
-      required String? country,
-      required String? language}) async {
+        required Version installedVersion,
+        required String? country,
+        required String? language}) async {
     if (state.packageInfo == null) return UpgraderVersionInfo();
 
     String? appStoreListingURL;
@@ -79,9 +79,9 @@ class UpgraderPlayStore extends UpgraderStore {
   @override
   Future<UpgraderVersionInfo> getVersionInfo(
       {required UpgraderState state,
-      required Version installedVersion,
-      required String? country,
-      required String? language}) async {
+        required Version installedVersion,
+        required String? country,
+        required String? language}) async {
     if (state.packageInfo == null) return UpgraderVersionInfo();
     final id = state.packageInfo!.packageName;
     final playStore = PlayStoreSearchAPI(
@@ -95,7 +95,7 @@ class UpgraderPlayStore extends UpgraderStore {
     String? releaseNotes;
 
     final response =
-        await playStore.lookupById(id, country: country, language: language);
+    await playStore.lookupById(id, country: country, language: language);
     if (response != null) {
       final version = playStore.version(response);
       if (version != null) {
@@ -156,9 +156,9 @@ class UpgraderAppcastStore extends UpgraderStore {
   @override
   Future<UpgraderVersionInfo> getVersionInfo(
       {required UpgraderState state,
-      required Version installedVersion,
-      required String? country,
-      required String? language}) async {
+        required Version installedVersion,
+        required String? country,
+        required String? language}) async {
     String? appStoreListingURL;
     Version? appStoreVersion;
     bool? isCriticalUpdate;
@@ -208,7 +208,7 @@ class UpgraderAppcastStore extends UpgraderStore {
           if (state.debugLogging) {
             print(
                 'upgrader: UpgraderAppcastStore: best item version could not be parsed: '
-                '${bestItem.versionString}');
+                    '${bestItem.versionString}');
           }
         }
       }

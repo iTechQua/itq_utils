@@ -1,3 +1,5 @@
+## 2.1.9
+- Added FlexibleDataTable new properties
 ## 2.1.8
 - Fix plugin error
 ## 2.1.7

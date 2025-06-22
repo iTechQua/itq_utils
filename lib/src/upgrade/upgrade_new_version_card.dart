@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:itq_utils/src/upgrade/alert_style_widget.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version_messages.dart';
+import 'package:itq_utils/itq_utils.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_state.dart';
 
 
@@ -84,7 +82,7 @@ class UpgradeCardState extends State<UpgradeCard> {
         stream: widget.upgrader.stateStream,
         builder: (BuildContext context, AsyncSnapshot<UpgraderState> snapshot) {
           if ((snapshot.connectionState == ConnectionState.waiting ||
-                  snapshot.connectionState == ConnectionState.active) &&
+              snapshot.connectionState == ConnectionState.active) &&
               snapshot.data != null) {
             final upgraderState = snapshot.data!;
             if (upgraderState.versionInfo != null) {
@@ -203,7 +201,7 @@ class UpgradeCardState extends State<UpgradeCard> {
 
   bool get shouldDisplayReleaseNotes =>
       widget.showReleaseNotes &&
-      (widget.upgrader.releaseNotes?.isNotEmpty ?? false);
+          (widget.upgrader.releaseNotes?.isNotEmpty ?? false);
 
   void onUserIgnored() {
     if (widget.upgrader.state.debugLogging) {

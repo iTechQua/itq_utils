@@ -1,5 +1,5 @@
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
+import 'package:itq_utils/itq_utils.dart';
 import 'package:version/version.dart';
 
 

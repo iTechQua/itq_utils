@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version_messages.dart';
+import 'package:itq_utils/itq_utils.dart';
 import 'package:itq_utils/src/upgrade/upgrade_new_version_state.dart';
 
 
@@ -104,7 +103,7 @@ class UpgradeAlertState extends State<UpgradeAlert> {
       stream: widget.upgrader.stateStream,
       builder: (BuildContext context, AsyncSnapshot<UpgraderState> snapshot) {
         if ((snapshot.connectionState == ConnectionState.waiting ||
-                snapshot.connectionState == ConnectionState.active) &&
+            snapshot.connectionState == ConnectionState.active) &&
             snapshot.data != null) {
           final upgraderState = snapshot.data!;
           if (upgraderState.versionInfo != null) {
@@ -114,7 +113,7 @@ class UpgradeAlertState extends State<UpgradeAlert> {
 
             if (!displayed) {
               final checkContext = widget.navigatorKey != null &&
-                      widget.navigatorKey!.currentContext != null
+                  widget.navigatorKey!.currentContext != null
                   ? widget.navigatorKey!.currentContext!
                   : context;
               checkVersion(context: checkContext);
@@ -144,7 +143,7 @@ class UpgradeAlertState extends State<UpgradeAlert> {
           title: appMessages.message(UpgraderMessage.title),
           message: widget.upgrader.body(appMessages),
           releaseNotes:
-              shouldDisplayReleaseNotes ? widget.upgrader.releaseNotes : null,
+          shouldDisplayReleaseNotes ? widget.upgrader.releaseNotes : null,
           barrierDismissible: widget.barrierDismissible,
           messages: appMessages,
         );
@@ -206,7 +205,7 @@ class UpgradeAlertState extends State<UpgradeAlert> {
 
   bool get shouldDisplayReleaseNotes =>
       widget.showReleaseNotes &&
-      (widget.upgrader.releaseNotes?.isNotEmpty ?? false);
+          (widget.upgrader.releaseNotes?.isNotEmpty ?? false);
 
   /// Show the alert dialog.
   void showTheDialog({
@@ -224,32 +223,51 @@ class UpgradeAlertState extends State<UpgradeAlert> {
       print('upgrader: showTheDialog releaseNotes: $releaseNotes');
     }
 
+    if (!context.mounted) {
+      if (widget.upgrader.state.debugLogging) {
+        print('upgrader: showTheDialog context not mounted - dialog not shown');
+      }
+      return;
+    }
+
     // Save the date/time as the last time alerted.
     widget.upgrader.saveLastAlerted();
 
-    showDialog(
-      barrierDismissible: barrierDismissible,
-      context: context,
-      builder: (BuildContext context) {
-        return PopScope(
-          canPop: onCanPop(),
-          onPopInvokedWithResult: (didPop, result) {
-            if (widget.upgrader.state.debugLogging) {
-              print('upgrader: showTheDialog onPopInvoked: $didPop');
-            }
-          },
-          child: alertDialog(
-            key,
-            title ?? '',
-            message,
-            releaseNotes,
-            context,
-            widget.dialogStyle == UpgradeDialogStyle.cupertino,
-            messages,
-          ),
-        );
+    // Detect if CupertinoApp is in the widget tree
+    final isCupertinoApp =
+        context.findAncestorWidgetOfExactType<CupertinoApp>() != null;
+
+    dialogBuilder(BuildContext context) => PopScope(
+      canPop: onCanPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (widget.upgrader.state.debugLogging) {
+          print('upgrader: showTheDialog onPopInvoked: $didPop');
+        }
       },
+      child: alertDialog(
+        key,
+        title ?? '',
+        message,
+        releaseNotes,
+        context,
+        widget.dialogStyle == UpgradeDialogStyle.cupertino,
+        messages,
+      ),
     );
+
+    if (isCupertinoApp) {
+      showCupertinoDialog(
+        barrierDismissible: barrierDismissible,
+        context: context,
+        builder: dialogBuilder,
+      );
+    } else {
+      showDialog(
+        barrierDismissible: barrierDismissible,
+        context: context,
+        builder: dialogBuilder,
+      );
+    }
   }
 
   /// Determines if the dialog blocks the current route from being popped.
@@ -304,17 +322,17 @@ class UpgradeAlertState extends State<UpgradeAlert> {
         constraints: const BoxConstraints(maxHeight: 400),
         child: SingleChildScrollView(
             child: Column(
-          crossAxisAlignment:
+              crossAxisAlignment:
               cupertino ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(message),
-            Padding(
-                padding: const EdgeInsets.only(top: 15.0),
-                child: Text(messages.message(UpgraderMessage.prompt) ?? '')),
-            if (notes != null) notes,
-          ],
-        )));
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(message),
+                Padding(
+                    padding: const EdgeInsets.only(top: 15.0),
+                    child: Text(messages.message(UpgraderMessage.prompt) ?? '')),
+                if (notes != null) notes,
+              ],
+            )));
     final actions = <Widget>[
       if (showIgnore)
         button(
@@ -343,9 +361,9 @@ class UpgradeAlertState extends State<UpgradeAlert> {
 
     return cupertino
         ? CupertinoAlertDialog(
-            key: key, title: textTitle, content: content, actions: actions)
+        key: key, title: textTitle, content: content, actions: actions)
         : AlertDialog(
-            key: key, title: textTitle, content: content, actions: actions);
+        key: key, title: textTitle, content: content, actions: actions);
   }
 
   Widget button({
@@ -357,10 +375,10 @@ class UpgradeAlertState extends State<UpgradeAlert> {
   }) {
     return cupertino
         ? CupertinoDialogAction(
-            textStyle: widget.cupertinoButtonTextStyle,
-            onPressed: onPressed,
-            isDefaultAction: isDefaultAction,
-            child: Text(text ?? ''))
+        textStyle: widget.cupertinoButtonTextStyle,
+        onPressed: onPressed,
+        isDefaultAction: isDefaultAction,
+        child: Text(text ?? ''))
         : TextButton(onPressed: onPressed, child: Text(text ?? ''));
   }
 }

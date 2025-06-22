@@ -1,8 +1,7 @@
 import 'dart:convert' show utf8;
 
 import 'package:http/http.dart' as http;
-import 'package:itq_utils/src/upgrade/upgrade_new_version_device.dart';
-import 'package:itq_utils/src/upgrade/upgrade_new_version_os.dart';
+import 'package:itq_utils/itq_utils.dart';
 import 'package:version/version.dart';
 import 'package:xml/xml.dart';
 
@@ -46,17 +45,17 @@ class Appcast {
     }
 
     AppcastItem? bestItem;
-    for (var item in items!) {
+    items!.forEach((AppcastItem item) {
       if (item.hostSupportsItem(
-              osVersion: osVersionString,
-              currentPlatform: upgraderOS.current) &&
+          osVersion: osVersionString,
+          currentPlatform: upgraderOS.current) &&
           item.isCriticalUpdate) {
         if (bestItem == null) {
           bestItem = item;
         } else {
           try {
             final itemVersion = Version.parse(item.versionString!);
-            final bestItemVersion = Version.parse(bestItem.versionString!);
+            final bestItemVersion = Version.parse(bestItem!.versionString!);
             if (itemVersion > bestItemVersion) {
               bestItem = item;
             }
@@ -65,7 +64,7 @@ class Appcast {
           }
         }
       }
-    }
+    });
     return bestItem;
   }
 
@@ -77,7 +76,7 @@ class Appcast {
     }
 
     AppcastItem? bestItem;
-    for (var item in items!) {
+    items!.forEach((AppcastItem item) {
       if (item.hostSupportsItem(
           osVersion: osVersionString, currentPlatform: upgraderOS.current)) {
         if (bestItem == null) {
@@ -85,7 +84,7 @@ class Appcast {
         } else {
           try {
             final itemVersion = Version.parse(item.versionString!);
-            final bestItemVersion = Version.parse(bestItem.versionString!);
+            final bestItemVersion = Version.parse(bestItem!.versionString!);
             if (itemVersion > bestItemVersion) {
               bestItem = item;
             }
@@ -94,7 +93,7 @@ class Appcast {
           }
         }
       }
-    }
+    });
     return bestItem;
   }
 
@@ -103,7 +102,7 @@ class Appcast {
     http.Response response;
     try {
       response =
-          await client.get(Uri.parse(appCastURL), headers: clientHeaders);
+      await client.get(Uri.parse(appCastURL), headers: clientHeaders);
     } catch (e) {
       print('upgrader: parseAppcastItemsFromUri exception: $e');
       return null;
@@ -149,7 +148,7 @@ class Appcast {
         String? itemVersion;
         String? enclosureVersion;
 
-        for (var childNode in itemElement.children) {
+        itemElement.children.forEach((XmlNode childNode) {
           if (childNode is XmlElement) {
             final name = childNode.name.toString();
             if (name == AppcastConstants.ElementTitle) {
@@ -157,7 +156,7 @@ class Appcast {
             } else if (name == AppcastConstants.ElementDescription) {
               itemDescription = childNode.innerText;
             } else if (name == AppcastConstants.ElementEnclosure) {
-              for (var attribute in childNode.attributes) {
+              childNode.attributes.forEach((XmlAttribute attribute) {
                 if (attribute.name.toString() ==
                     AppcastConstants.AttributeVersion) {
                   enclosureVersion = attribute.value;
@@ -168,7 +167,7 @@ class Appcast {
                     AppcastConstants.AttributeURL) {
                   fileURL = attribute.value;
                 }
-              }
+              });
             } else if (name == AppcastConstants.ElementMaximumSystemVersion) {
               maximumSystemVersion = childNode.innerText;
             } else if (name == AppcastConstants.ElementMinimumSystemVersion) {
@@ -178,17 +177,17 @@ class Appcast {
             } else if (name == AppcastConstants.ElementReleaseNotesLink) {
               releaseNotesLink = childNode.innerText;
             } else if (name == AppcastConstants.ElementTags) {
-              for (var tagChildNode in childNode.children) {
+              childNode.children.forEach((XmlNode tagChildNode) {
                 if (tagChildNode is XmlElement) {
                   final tagName = tagChildNode.name.toString();
                   tags.add(tagName);
                 }
-              }
+              });
             } else if (name == AppcastConstants.AttributeVersion) {
               itemVersion = childNode.innerText;
             }
           }
-        }
+        });
 
         if (itemVersion == null) {
           newVersion = enclosureVersion;
