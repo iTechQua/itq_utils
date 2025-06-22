@@ -1,3 +1,5 @@
+## 2.2.1
+- Fix plugin error
 ## 2.2.0
 - Fix plugin error
 ## 2.1.9
