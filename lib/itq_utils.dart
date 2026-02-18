@@ -17,11 +17,6 @@ export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:fluttertoast/fluttertoast.dart';
 export 'package:shared_preferences/shared_preferences.dart';
 
-export 'src/custom_paints/google_logo_painter.dart';
-export 'src/chatgpt/chat_gpt.dart';
-export 'src/chatgpt/chat_gpt_component.dart';
-export 'src/chatgpt/chat_gpt_strings.dart';
-export 'src/chatgpt/chat_gpt_models.dart';
 export 'src/deprecated_widgets.dart';
 export 'src/extensions/bool_extensions.dart';
 export 'src/extensions/color_extensions.dart';
@@ -148,17 +143,6 @@ export 'src/emergent/widget/emergent_text.dart';
 export 'src/emergent/widget/emergent_toggle.dart';
 export 'src/emergent/widget/emergent_floating_action_button.dart';
 
-export 'src/upgrade/alert_style_widget.dart';
-export 'src/upgrade/app_cast.dart';
-export 'src/upgrade/itunes_search_api.dart';
-export 'src/upgrade/play_store_search_api.dart';
-export 'src/upgrade/upgrade_new_version_alert.dart';
-export 'src/upgrade/upgrade_new_version_card.dart';
-export 'src/upgrade/upgrade_new_version_device.dart';
-export 'src/upgrade/upgrade_new_version_messages.dart';
-export 'src/upgrade/upgrade_new_version_os.dart';
-export 'src/upgrade/upgrade_new_version.dart';
-
 export 'src/dropdown_search/dropdown_search_form_field.dart';
 export 'src/dropdown_search/properties/bottom_sheet_props.dart';
 export 'src/dropdown_search/properties/clear_button_props.dart';
@@ -172,37 +156,6 @@ export 'src/dropdown_search/properties/menu_props.dart';
 export 'src/dropdown_search/properties/modal_bottom_sheet_props.dart';
 export 'src/dropdown_search/properties/popup_props.dart';
 export 'src/dropdown_search/properties/text_field_props.dart';
-
-export 'src/chat_ui/chat_l10n.dart';
-export 'src/chat_ui/chat_theme.dart';
-export 'src/chat_ui/models/bubble_rtl_alignment.dart';
-export 'src/chat_ui/models/emoji_enlargement_behavior.dart';
-export 'src/chat_ui/models/input_clear_mode.dart';
-export 'src/chat_ui/models/pattern_style.dart';
-export 'src/chat_ui/models/send_button_visibility_mode.dart';
-export 'src/chat_ui/models/typing_indicator_mode.dart';
-export 'src/chat_ui/util.dart'
-    show formatBytes, isConsistsOfEmojis;
-export 'src/chat_ui/widgets/chat.dart';
-export 'src/chat_ui/widgets/chat_list.dart';
-export 'src/chat_ui/widgets/image_gallery.dart';
-export 'src/chat_ui/widgets/input/attachment_button.dart';
-export 'src/chat_ui/widgets/input/input.dart';
-export 'src/chat_ui/widgets/input/input_text_field_controller.dart';
-export 'src/chat_ui/widgets/input/send_button.dart';
-export 'src/chat_ui/widgets/message/file_message.dart';
-export 'src/chat_ui/widgets/message/image_message.dart';
-export 'src/chat_ui/widgets/message/message.dart';
-export 'src/chat_ui/widgets/message/message_status.dart';
-export 'src/chat_ui/widgets/message/system_message.dart';
-export 'src/chat_ui/widgets/message/text_message.dart';
-export 'src/chat_ui/widgets/message/user_avatar.dart';
-export 'src/chat_ui/widgets/message/user_name.dart';
-export 'src/chat_ui/widgets/typing_indicator.dart';
-export 'src/chat_ui/widgets/unread_header.dart';
-
-export 'src/datatable/generic_datatable.dart';
-
 
 //region Global variables - This variables can be changed.
 Color textPrimaryColorGlobal = textPrimaryColor;

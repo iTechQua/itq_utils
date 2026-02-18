@@ -172,15 +172,15 @@ class EmergentRadio<T> extends StatelessWidget {
     this.isEnabled = true,
   });
 
-  bool get isSelected => this.value != null && this.value == this.groupValue;
+  bool get isSelected => value != null && value == groupValue;
 
   void _onClick() {
-    if (this.onChanged != null) {
-      if (this.value == this.groupValue) {
+    if (onChanged != null) {
+      if (value == groupValue) {
         //unselect
-        this.onChanged!(null);
+        onChanged!(null);
       } else {
-        this.onChanged!(this.value);
+        onChanged!(value);
       }
     }
   }
@@ -190,17 +190,17 @@ class EmergentRadio<T> extends StatelessWidget {
     final EmergentThemeData theme = EmergentTheme.currentTheme(context);
 
     final double selectedDepth =
-        -1 * (this.style.selectedDepth ?? theme.depth).abs();
+        -1 * (style.selectedDepth ?? theme.depth).abs();
     final double unselectedDepth =
-        (this.style.unselectedDepth ?? theme.depth).abs();
+        (style.unselectedDepth ?? theme.depth).abs();
 
     double depth = isSelected ? selectedDepth : unselectedDepth;
-    if (!this.isEnabled) {
+    if (!isEnabled) {
       depth = 0;
     }
 
-    final Color unselectedColor = this.style.unselectedColor ?? theme.baseColor;
-    final Color selectedColor = this.style.selectedColor ?? unselectedColor;
+    final Color unselectedColor = style.unselectedColor ?? theme.baseColor;
+    final Color selectedColor = style.selectedColor ?? unselectedColor;
 
     final Color color = isSelected ? selectedColor : unselectedColor;
 
@@ -208,22 +208,22 @@ class EmergentRadio<T> extends StatelessWidget {
       onPressed: () {
         _onClick();
       },
-      duration: this.duration,
-      curve: this.curve,
-      padding: this.padding,
+      duration: duration,
+      curve: curve,
+      padding: padding,
       pressed: isSelected,
       minDistance: selectedDepth,
       style: EmergentStyle(
-        border: this.style.border,
+        border: style.border,
         color: color,
-        boxShape: this.style.boxShape,
-        lightSource: this.style.lightSource ?? theme.lightSource,
-        disableDepth: this.style.disableDepth,
-        intensity: this.style.intensity,
+        boxShape: style.boxShape,
+        lightSource: style.lightSource ?? theme.lightSource,
+        disableDepth: style.disableDepth,
+        intensity: style.intensity,
         depth: depth,
-        shape: this.style.shape ?? EmergentShape.flat,
+        shape: style.shape ?? EmergentShape.flat,
       ),
-      child: this.child,
+      child: child,
     );
   }
 }

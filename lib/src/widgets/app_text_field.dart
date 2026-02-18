@@ -83,14 +83,6 @@ class AppTextField extends StatefulWidget {
   final TextStyle? titleTextStyle;
   final int spacingBetweenTitleAndTextFormField;
 
-  //ChatGPT Params
-  final bool enableChatGPT;
-  final Widget? suffixChatGPTIcon;
-  final Widget? loaderWidgetForChatGPT;
-  final InputDecoration? promptFieldInputDecorationChatGPT;
-  final bool shortReplyChatGPT;
-  final bool testWithoutKeyChatGPT;
-
   @Deprecated('Use TextFieldType.PASSWORD instead')
   final bool? isPassword;
   final bool obscureText;
@@ -148,13 +140,6 @@ class AppTextField extends StatefulWidget {
     this.titleTextStyle,
     this.spacingBetweenTitleAndTextFormField = 4,
 
-    //ChatGpt Params
-    this.enableChatGPT = false,
-    this.loaderWidgetForChatGPT,
-    this.suffixChatGPTIcon,
-    this.promptFieldInputDecorationChatGPT,
-    this.shortReplyChatGPT = false,
-    this.testWithoutKeyChatGPT = false,
     this.obscureText = false,
     super.key,
   });
@@ -304,41 +289,6 @@ class _AppTextFieldState extends State<AppTextField> {
     setState(() {});
   }
 
-  Widget chatGPTWidget() {
-    return ChatGPTWidget(
-      promptFieldInputDecoration: widget.promptFieldInputDecorationChatGPT,
-      shortReply: widget.shortReplyChatGPT,
-      testWithoutKey: widget.testWithoutKeyChatGPT,
-      initialPrompt: widget.controller != null ? widget.controller!.text : '',
-      recentList: recentChat,
-      loaderWidget: widget.loaderWidgetForChatGPT,
-      chatGPTModuleStrings: ChatGPTModuleStrings(),
-      onResponse: (s) {
-        if (s.isNotEmpty) {
-          widget.controller?.text = s;
-          setState(() {});
-        }
-      },
-      child: widget.suffixChatGPTIcon ??
-          Transform.flip(
-            flipX: true,
-            child: Image.asset(
-              "assets/icons/ic_beautify.png",
-              height: 22,
-              package: channelName,
-              width: 22,
-              color: context.iconColor,
-              fit: BoxFit.cover,
-              // color: context.primaryColor,
-              errorBuilder: (context, error, stackTrace) => Text(
-                "AI",
-                style: boldTextStyle(color: context.primaryColor, size: 16),
-              ),
-            ),
-          ),
-    );
-  }
-
   Widget? suffixIcon() {
     if (widget.textFieldType == TextFieldType.PASSWORD) {
       if (widget.suffix != null) {
@@ -408,10 +358,7 @@ class _AppTextFieldState extends State<AppTextField> {
       keyboardType: applyTextInputType(),
       decoration: widget.decoration != null
           ? (widget.decoration!.copyWith(
-              suffixIcon: widget.enableChatGPT &&
-                      widget.textFieldType != TextFieldType.PASSWORD
-                  ? chatGPTWidget()
-                  : suffixIcon(),
+              suffixIcon: suffixIcon(),
             ))
           : InputDecoration(),
       focusNode: widget.focus,

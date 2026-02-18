@@ -53,8 +53,6 @@ void main() async {
 
   await initialize();
 
-  chatGPTAPIkey = "YOUR_KEY";
-
   runApp(MyApp());
 }
 ```
@@ -283,12 +281,6 @@ DoublePressBackWidget(
   child: AnyWidget(),
   message: 'Your message' // Optional
 ),
-```
-
-```dart
-/// Add a Google Logo
-/// Add size parameter for custom size - Default is 24
-GoogleLogoWidget(),
 ```
 [Image](#googlelogowidget)
 

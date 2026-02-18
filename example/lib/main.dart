@@ -441,16 +441,6 @@ class _HomePageState extends State<HomePage> {
                       ),
                       8.height,
 
-                      /// Default AppTextField With ChatGPT
-                      AppTextField(
-                        controller: textCont,
-                        textFieldType: TextFieldType.OTHER,
-                        enableChatGPT: true,
-                        testWithoutKeyChatGPT: true,
-                        decoration: defaultInputDecoration(),
-                      ),
-                      8.height,
-
                       /// Email TextField
                       AppTextField(
                         textFieldType: TextFieldType.EMAIL,
@@ -474,9 +464,6 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ).paddingAll(16),
-
-                  16.height,
-                  GoogleLogoWidget(size: 30),
 
                   16.height,
                   Row(

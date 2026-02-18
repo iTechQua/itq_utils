@@ -1,3 +1,5 @@
+## 2.2.4
+- Fix metadataTextStyle issue
 ## 2.2.3
 - Fix plugin version issue
 ## 2.2.2
