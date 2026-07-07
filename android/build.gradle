@@ -21,14 +21,24 @@ rootProject.allprojects {
 
 apply plugin: 'com.android.library'
 
-// AGP < 9 doesn't bundle Kotlin support, so the Kotlin Gradle plugin must be
-// applied explicitly. AGP 9+ ships Built-in Kotlin and registers the `kotlin {}`
-// extension itself, so applying 'kotlin-android' there would conflict.
+// Always apply the classic Kotlin Gradle Plugin explicitly. An earlier
+// version of this file only applied it when
+// com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION's major version was
+// < 9, on the assumption that AGP 9+'s "Built-in Kotlin" support would
+// compile this module's .kt files instead. In practice, on this project's
+// actual build (AGP major resolves to >= 9 here), Built-in Kotlin does NOT
+// kick in automatically just because kotlin-android isn't applied - the
+// result was that ITQUtilsPlugin.kt was never compiled by anyone at all,
+// so :app failed at link time with "cannot find symbol: class
+// ItqUtilsPlugin" even though Gradle config itself succeeded. Flutter's
+// own build-time warning ("Future versions of Flutter will fail to build
+// if your app uses plugins that apply KGP") confirms classic KGP is still
+// fully supported today - only deprecated for a future release - so
+// applying it unconditionally is the currently-correct, working approach.
+// Revisit only once actually migrating to Built-in Kotlin with its real
+// opt-in mechanism (not just omitting this apply).
 // See: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0].toInteger()
-if (agpMajor < 9) {
-    apply plugin: 'kotlin-android'
-}
+apply plugin: 'kotlin-android'
 
 android {
     // Bumped from 34 - some of this plugin's own dependencies (fluttertoast,
@@ -55,6 +65,8 @@ android {
     namespace 'com.itechqu.itq_utils'
 }
 
+// Safe unconditionally now: 'kotlin-android' is always applied above, so
+// this extension always exists.
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
