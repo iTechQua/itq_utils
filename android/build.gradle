@@ -23,7 +23,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 34
+    // Bumped from 34 - some of this plugin's own dependencies (fluttertoast,
+    // androidx.core 1.18.0, etc.) now require compileSdk 36, so consuming
+    // apps whose own compileSdk was still 34 started failing Gradle's
+    // AAR-metadata check on this module. Consuming apps must have
+    // compileSdk >= 36 themselves.
+    compileSdk 36
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

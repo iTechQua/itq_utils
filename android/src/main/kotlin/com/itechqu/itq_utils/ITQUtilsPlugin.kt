@@ -53,20 +53,31 @@ class ItqUtilsPlugin : FlutterPlugin, MethodCallHandler {
             packageManager.getPackageInfo(appContext!!.packageName, 0)
         }
 
-        var appName = ""
+        var appName: String
+        // PackageInfo.applicationInfo is annotated @Nullable in newer
+        // Android platform stubs (compileSdk 34+), so this is now typed
+        // ApplicationInfo? instead of the unchecked platform type it used
+        // to be under older compileSdk versions - safe-call + fallback
+        // instead of direct (unchecked) member access.
         val applicationInfo = packageInfo.applicationInfo
-        val stringId = applicationInfo.labelRes
+        val stringId = applicationInfo?.labelRes ?: 0
 
         appName = if (stringId == 0) {
-            applicationInfo.nonLocalizedLabel.toString()
+            applicationInfo?.nonLocalizedLabel?.toString() ?: ""
         } else {
             appContext!!.getString(stringId)
         }
 
-        return mapOf(
+        // Explicit <String, Any> type arguments: without them, Kotlin
+        // infers the map's value type from this exact mix of String/Int
+        // values as `Comparable<*>? & Serializable?`, which no longer
+        // satisfies this function's declared `Map<String, Any>` return
+        // type on newer Kotlin compiler versions. packageInfo.versionName
+        // is also nullable under the newer stubs, hence the `?: ""`.
+        return mapOf<String, Any>(
             "appName" to appName,
             "packageName" to packageInfo.packageName,
-            "versionName" to packageInfo.versionName,
+            "versionName" to (packageInfo.versionName ?: ""),
             "versionCode" to getLongVersionCode(packageInfo).toString(),
             "androidSDKVersion" to Build.VERSION.SDK_INT,
         )

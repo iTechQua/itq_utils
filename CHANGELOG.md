@@ -1,3 +1,5 @@
+## 2.2.5
+- Fix package compile version issue
 ## 2.2.4
 - Fix metadataTextStyle issue
 ## 2.2.3
