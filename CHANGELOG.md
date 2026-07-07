@@ -1,3 +1,5 @@
+## 2.2.6
+- Migrate Android build to Built-in Kotlin (conditionally apply `kotlin-android` only on AGP < 9, replace deprecated `kotlinOptions` with `kotlin { compilerOptions {} }`)
 ## 2.2.5
 - Fix package compile version issue
 ## 2.2.4
